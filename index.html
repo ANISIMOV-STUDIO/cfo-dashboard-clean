@@ -6529,12 +6529,12 @@
         textElement.textContent = formatRecommendationMessage(rule, data);
         
         // Настраиваем кнопку "Подробнее"
-        detailsBtn.onclick = () => {
+        detailsBtn.addEventListener('click', () => {
             hideRecommendationBanner();
             if (rule.targetPage) {
                 setPage(rule.targetPage);
             }
-        };
+        }, { once: true });
         
         // Сохраняем текущее правило
         banner.dataset.currentRule = rule.id;
@@ -8766,17 +8766,12 @@
         }
     }
     
-    // HOTFIX: Export global functions for HTML onclick handlers
+    // Expose API for external integrations
     window.printCurrentPage = printCurrentPage;
     window.printAllPages = printAllPages;
     window.exportCurrentPage = exportCurrentPage;
     window.exportAllPages = exportAllPages;
     window.executeBatchExport = executeBatchExport;
-    window.hideRecommendationBanner = hideRecommendationBanner;
-    window.snoozeRecommendationBanner = snoozeRecommendationBanner;
-    window.snoozeAlert = snoozeAlert;
-    window.jumpToAlertSource = jumpToAlertSource;
-    window.dismissAlert = dismissAlert;
 
     // Инициализация
     // B1: Error boundary - глобальная обработка ошибок
