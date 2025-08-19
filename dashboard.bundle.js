@@ -864,7 +864,7 @@
             }
         });
 
-        // Performance checks
+    // Performance checks
         if (typeof performance !== 'undefined' && performance.now) {
             try {
                 var perfStart = performance.now();
@@ -890,6 +890,243 @@
             timestamp: new Date().toISOString()
         };
     };
+
+    // ------------------------------------------------------------------
+    // Export and print actions (moved from index.html)
+    // ------------------------------------------------------------------
+
+    function exportCurrentPage() {
+        console.log('Exporting current page:', currentPage);
+
+        window.external1C.exportCurrentPagePNG()
+            .then(function(result) {
+                if (result.success) {
+                    console.log('Page exported successfully:', result);
+                    if (typeof window !== 'undefined' && !window.external1C) {
+                        console.log('Export result:', result.pageName, result.width + 'x' + result.height);
+                        alert('Страница "' + result.pageName + '" экспортирована успешно!\nРазмер: ' + result.width + 'x' + result.height + 'px');
+                    }
+                } else {
+                    console.error('Failed to export page:', result.message);
+                    alert('Ошибка экспорта: ' + result.message);
+                }
+            })
+            .catch(function(error) {
+                console.error('Export error:', error);
+                alert('Ошибка экспорта: ' + error.message);
+            });
+    }
+
+    function exportAllPages() {
+        console.log('Exporting all pages...');
+
+        window.external1C.exportAllPagesPNG()
+            .then(function(result) {
+                if (result.success) {
+                    console.log('All pages exported successfully:', result);
+                    var pageCount = Object.keys(result.exports).length;
+                    if (typeof window !== 'undefined' && !window.external1C) {
+                        console.log('Exported pages:', Object.keys(result.exports));
+                        alert('Все страницы (' + pageCount + ') экспортированы успешно!');
+                    }
+                } else {
+                    console.error('Failed to export all pages:', result.message);
+                    alert('Ошибка экспорта всех страниц: ' + result.message);
+                }
+            })
+            .catch(function(error) {
+                console.error('Export all pages error:', error);
+                alert('Ошибка экспорта всех страниц: ' + error.message);
+            });
+    }
+
+    function executeBatchExport() {
+        console.log('Starting batch export with manifest...');
+
+        var manifest = createBatchExportManifest();
+        var startTime = performance.now();
+
+        var exportPromises = manifest.exports.map(function(pageExport, index) {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    var originalPage = currentPage;
+
+                    switchPage(parseInt(pageExport.pageId, 10));
+
+                    exportCurrentPagePromise()
+                        .then(function(result) {
+                            if (result && result.success) {
+                                pageExport.status = 'completed';
+                                pageExport.actualSize = result.size || 'unknown';
+                                pageExport.exportedAt = new Date().toISOString();
+                                pageExport.dataUrl = result.dataUrl;
+                                resolve(pageExport);
+                            } else {
+                                pageExport.status = 'failed';
+                                pageExport.error = (result && result.message) || 'Unknown export error';
+                                reject(new Error('Failed to export page ' + pageExport.pageName));
+                            }
+                        })
+                        .catch(function(error) {
+                            pageExport.status = 'failed';
+                            pageExport.error = error.message;
+                            reject(error);
+                        })
+                        .finally(function() {
+                            switchPage(originalPage);
+                        });
+                }, index * 1000);
+            });
+        });
+
+        Promise.allSettled(exportPromises)
+            .then(function(results) {
+                var duration = performance.now() - startTime;
+                var successful = results.filter(function(r) { return r.status === 'fulfilled'; }).length;
+                var failed = results.filter(function(r) { return r.status === 'rejected'; }).length;
+
+                manifest.summary = {
+                    totalExports: manifest.exports.length,
+                    successful: successful,
+                    failed: failed,
+                    duration: duration.toFixed(2) + 'ms',
+                    completedAt: new Date().toISOString()
+                };
+
+                var manifestBlob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' });
+                var manifestUrl = URL.createObjectURL(manifestBlob);
+
+                var downloadLink = document.createElement('a');
+                downloadLink.href = manifestUrl;
+                downloadLink.download = 'cfo_dashboard_export_manifest_' + manifest.dashboard.period + '.json';
+                downloadLink.style.display = 'none';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+
+                if (window.CFODashboard && window.CFODashboard.log) {
+                    window.CFODashboard.log('info', 'batchExportCompleted', manifest.summary);
+                }
+
+                alert('Batch export завершён!\nУспешно: ' + successful + ', Ошибок: ' + failed + '\nManifest сохранён как JSON файл.');
+
+                console.log('Batch export manifest:', manifest);
+
+            })
+            .catch(function(error) {
+                console.error('Batch export error:', error);
+                if (window.CFODashboard && window.CFODashboard.log) {
+                    window.CFODashboard.log('error', 'batchExportFailed', { error: error.message });
+                }
+                alert('Ошибка batch export: ' + error.message);
+            });
+
+        return manifest;
+    }
+
+    function printCurrentPage() {
+        var startTime = performance.now();
+
+        updatePrintHeader();
+
+        document.body.setAttribute('data-print-mode', 'current-page');
+
+        document.querySelectorAll('.page-content').forEach(function(page) {
+            if (page.id !== 'page-' + currentPage) {
+                page.classList.add('print-hidden');
+            } else {
+                page.classList.remove('print-hidden');
+            }
+        });
+
+        optimizePrintLayout();
+
+        var currentPageEl = document.getElementById('page-' + currentPage);
+        if (currentPageEl) {
+            currentPageEl.querySelectorAll('.kpi-card, .chart-container').forEach(function(el) {
+                el.style.pageBreakInside = 'avoid';
+                el.style.breakInside = 'avoid';
+            });
+        }
+
+        setTimeout(function() {
+            window.print();
+
+            var duration = performance.now() - startTime;
+            if (window.CFODashboard && window.CFODashboard.log) {
+                window.CFODashboard.log('perf', 'printCurrentPage', {
+                    page: currentPage,
+                    duration: duration.toFixed(2) + 'ms'
+                });
+            }
+
+            setTimeout(function() {
+                document.body.removeAttribute('data-print-mode');
+                document.querySelectorAll('.page-content').forEach(function(page) {
+                    page.classList.remove('print-hidden');
+                    page.querySelectorAll('.kpi-card, .chart-container').forEach(function(el) {
+                        el.style.pageBreakInside = '';
+                        el.style.breakInside = '';
+                    });
+                });
+            }, 100);
+        }, 100);
+    }
+
+    function printAllPages() {
+        var startTime = performance.now();
+
+        updatePrintHeader();
+
+        document.body.setAttribute('data-print-mode', 'all-pages');
+
+        document.querySelectorAll('.page-content').forEach(function(page, index) {
+            page.classList.remove('print-hidden');
+
+            if (index < document.querySelectorAll('.page-content').length - 1) {
+                page.style.pageBreakAfter = 'always';
+                page.style.breakAfter = 'page';
+            }
+
+            page.querySelectorAll('.kpi-card, .chart-container, .section-title').forEach(function(el) {
+                el.style.pageBreakInside = 'avoid';
+                el.style.breakInside = 'avoid';
+            });
+        });
+
+        optimizePrintLayout();
+
+        setTimeout(function() {
+            window.print();
+
+            var duration = performance.now() - startTime;
+            var pageCount = document.querySelectorAll('.page-content').length;
+            if (window.CFODashboard && window.CFODashboard.log) {
+                window.CFODashboard.log('perf', 'printAllPages', {
+                    pageCount: pageCount,
+                    duration: duration.toFixed(2) + 'ms'
+                });
+            }
+
+            setTimeout(function() {
+                document.body.removeAttribute('data-print-mode');
+                document.querySelectorAll('.page-content').forEach(function(page) {
+                    page.style.pageBreakAfter = '';
+                    page.style.breakAfter = '';
+                    page.querySelectorAll('.kpi-card, .chart-container, .section-title').forEach(function(el) {
+                        el.style.pageBreakInside = '';
+                        el.style.breakInside = '';
+                    });
+                });
+            }, 100);
+        }, 100);
+    }
+
+    window.exportCurrentPage = exportCurrentPage;
+    window.exportAllPages = exportAllPages;
+    window.executeBatchExport = executeBatchExport;
+    window.printCurrentPage = printCurrentPage;
+    window.printAllPages = printAllPages;
 
     // Error logging integration for 1C
     window.__1c_log = window.__1c_log || [];
