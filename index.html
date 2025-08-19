@@ -190,7 +190,7 @@
         /* D1: Баннер рекомендаций - умные подсказки */
         .recommendations-banner {
             position: fixed;
-            top: 170px; /* Под фиксированной шапкой */
+            top: calc(var(--header-h) + 10px);
             left: 20px;
             right: 20px;
             z-index: 999;
@@ -8741,28 +8741,12 @@
     
     // B1: Function to measure and set header height as CSS variable
     function updateHeaderHeight() {
-        const header = document.querySelector('.page-navigation');
-        const filters = document.querySelector('.dashboard-filters');
-        
-        let totalHeight = 0;
-        
-        if (header) {
-            totalHeight += header.offsetHeight;
-        }
-        if (filters) {
-            totalHeight += filters.offsetHeight;
-        }
-        
-        // Set CSS variable for header height
+        var header = document.querySelector('.dashboard-header');
+        if (!header) return;
+        var totalHeight = header.offsetHeight;
         document.documentElement.style.setProperty('--header-h', totalHeight + 'px');
-        
-        // Performance logging
         if (window.CFODashboard && window.CFODashboard.log) {
-            window.CFODashboard.log('info', 'headerHeightUpdated', { 
-                height: totalHeight + 'px',
-                header: header ? header.offsetHeight : 0,
-                filters: filters ? filters.offsetHeight : 0
-            });
+            window.CFODashboard.log('info', 'headerHeightUpdated', { height: totalHeight + 'px' });
         }
     }
     
@@ -8945,10 +8929,12 @@
         // Инициализируем error boundary первым
         errorBoundary.init();
         
-        // B1: Update header height on window resize
-        window.addEventListener('resize', function() {
-            setTimeout(updateHeaderHeight, 100);
-        });
+        // B1: Update header height on window resize and element changes
+        var headerEl = document.querySelector('.dashboard-header');
+        window.addEventListener('resize', updateHeaderHeight);
+        if (headerEl && window.ResizeObserver) {
+            new ResizeObserver(updateHeaderHeight).observe(headerEl);
+        }
         
         try {
             // Инициализируем переключатели, фильтры, алерты, навигацию по страницам, плотность и клавиатурную навигацию

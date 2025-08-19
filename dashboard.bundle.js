@@ -735,6 +735,20 @@
         }
     };
 
+    function updateHeaderHeight() {
+        var header = document.querySelector('.dashboard-header');
+        if (!header) return;
+        document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        updateHeaderHeight();
+        window.addEventListener('resize', updateHeaderHeight);
+        if (window.ResizeObserver) {
+            var header = document.querySelector('.dashboard-header');
+            if (header) new ResizeObserver(updateHeaderHeight).observe(header);
+        }
+    });
+
     // Debug and validation (A2: Mini-linter)
     window.__dbg = window.__dbg || {};
     window.__dbg.selfCheck = function() {
