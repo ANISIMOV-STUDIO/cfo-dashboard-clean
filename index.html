@@ -4149,13 +4149,13 @@
                 <div class="alert-header">
                     <div class="alert-title">${icon} ${alert.type.toUpperCase()}</div>
                     <div class="alert-actions">
-                        <button class="alert-action-btn" onclick="snoozeAlert('${alertId}', '24h')" title="Отложить на 24 часа">
+                        <button class="alert-action-btn alert-snooze" data-alert-id="${alertId}" data-duration="24h" title="Отложить на 24 часа">
                             💤
                         </button>
-                        <button class="alert-action-btn" onclick="jumpToAlertSource('${alert.type}')" title="Перейти к источнику">
+                        <button class="alert-action-btn alert-jump" data-alert-type="${alert.type}" title="Перейти к источнику">
                             🔍
                         </button>
-                        <button class="alert-action-btn" onclick="dismissAlert('${alertId}')" title="Скрыть навсегда">
+                        <button class="alert-action-btn alert-dismiss" data-alert-id="${alertId}" title="Скрыть навсегда">
                             ✕
                         </button>
                     </div>
@@ -4163,7 +4163,7 @@
                 <div class="alert-message">${alert.message}</div>
                 <div class="alert-meta">
                     <span class="alert-time">${timeAgo}</span>
-                    <span class="alert-source-link" onclick="jumpToAlertSource('${alert.type}')">
+                    <span class="alert-source-link" data-alert-type="${alert.type}">
                         Перейти к деталям →
                     </span>
                 </div>
@@ -4223,6 +4223,30 @@
             alertsBody.innerHTML = filteredAlerts
                 .map((alert, index) => createAlertHTML(alert, index))
                 .join('');
+
+            alertsBody.querySelectorAll('.alert-snooze').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    snoozeAlert(btn.dataset.alertId, btn.dataset.duration);
+                });
+            });
+
+            alertsBody.querySelectorAll('.alert-jump').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    jumpToAlertSource(btn.dataset.alertType);
+                });
+            });
+
+            alertsBody.querySelectorAll('.alert-dismiss').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    dismissAlert(btn.dataset.alertId);
+                });
+            });
+
+            alertsBody.querySelectorAll('.alert-source-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    jumpToAlertSource(link.dataset.alertType);
+                });
+            });
         }
     }
 
@@ -5807,13 +5831,14 @@
         banner.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>${content.join(' | ')}</div>
-                <button onclick="this.parentElement.parentElement.remove()" 
-                        style="background: none; border: none; color: white; cursor: pointer; font-size: 16px; padding: 0 4px;">✕</button>
+                <button class="banner-close" style="background: none; border: none; color: white; cursor: pointer; font-size: 16px; padding: 0 4px;">✕</button>
             </div>
         `;
         
         document.body.appendChild(banner);
-        
+
+        banner.querySelector('.banner-close').addEventListener('click', () => banner.remove());
+
         // Автоскрытие через 10 секунд
         setTimeout(() => {
             if (document.getElementById('validation-banner')) {
