@@ -1,0 +1,234 @@
+{
+  "alertRules": {
+    "cash_shortage": {
+      "name": "Нехватка денежных средств",
+      "description": "Cash Runway менее установленного порога",
+      "metric": "cashRunwayMonths",
+      "thresholds": {
+        "critical": 1,
+        "high": 3,
+        "medium": 6,
+        "low": 12
+      },
+      "operator": "less_than",
+      "message": "Cash Runway составляет {value} мес. Требуется пополнение оборотных средств",
+      "recommendations": [
+        "Ускорить взыскание дебиторской задолженности",
+        "Пересмотреть условия оплаты с поставщиками",
+        "Рассмотреть кредитные линии"
+      ]
+    },
+    "overdue_ar": {
+      "name": "Критическая просрочка",
+      "description": "Дебиторская задолженность с просрочкой более 90 дней",
+      "metric": "arAging.buckets.90+",
+      "thresholds": {
+        "critical": 10000000,
+        "high": 5000000,
+        "medium": 2000000,
+        "low": 1000000
+      },
+      "operator": "greater_than",
+      "message": "Просрочка 90+ дней: {value} млн ₽. Риск списания безнадежных долгов",
+      "recommendations": [
+        "Принудительное взыскание через суд",
+        "Работа с коллекторскими агентствами",
+        "Создание резерва по сомнительным долгам"
+      ]
+    },
+    "dso_deterioration": {
+      "name": "Ухудшение DSO",
+      "description": "DSO превышает целевое значение",
+      "metric": "coefficients.dso",
+      "thresholds": {
+        "critical": 70,
+        "high": 60,
+        "medium": 50,
+        "low": 45
+      },
+      "operator": "greater_than",
+      "message": "DSO составляет {value} дней против целевых 45. Замедление оборачиваемости дебиторки",
+      "recommendations": [
+        "Ужесточить кредитную политику",
+        "Внедрить систему скидок за досрочную оплату",
+        "Усилить работу с просрочкой"
+      ]
+    },
+    "ccc_deterioration": {
+      "name": "Ухудшение CCC",
+      "description": "Цикл конвертации денег превышает норму",
+      "metric": "coefficients.ccc",
+      "thresholds": {
+        "critical": 80,
+        "high": 65,
+        "medium": 50,
+        "low": 40
+      },
+      "operator": "greater_than",
+      "message": "Цикл конвертации денег: {value} дней. Деньги надолго заморожены в обороте",
+      "recommendations": [
+        "Оптимизировать запасы (снизить DII)",
+        "Ускорить поступления от покупателей (снизить DSO)",
+        "Увеличить отсрочку поставщикам (увеличить DPO)"
+      ]
+    },
+    "liquidity_risk": {
+      "name": "Риск ликвидности",
+      "description": "Коэффициент текущей ликвидности ниже нормы",
+      "metric": "coefficients.current",
+      "thresholds": {
+        "critical": 1.0,
+        "high": 1.2,
+        "medium": 1.5,
+        "low": 2.0
+      },
+      "operator": "less_than",
+      "message": "Коэффициент текущей ликвидности: {value}. Риск неплатежеспособности",
+      "recommendations": [
+        "Увеличить краткосрочные активы",
+        "Пересмотреть структуру заемных средств",
+        "Улучшить управление оборотным капиталом"
+      ]
+    },
+    "debt_burden": {
+      "name": "Высокая долговая нагрузка",
+      "description": "Отношение долга к EBITDA превышает норму",
+      "metric": "coefficients.debtEbitda",
+      "thresholds": {
+        "critical": 5.0,
+        "high": 4.0,
+        "medium": 3.0,
+        "low": 2.0
+      },
+      "operator": "greater_than",
+      "message": "Debt/EBITDA: {value}x. Высокая долговая нагрузка, риск ковенантов",
+      "recommendations": [
+        "Досрочное погашение наиболее дорогих кредитов",
+        "Реструктуризация долга",
+        "Увеличение операционной прибыли"
+      ]
+    },
+    "bank_concentration": {
+      "name": "Концентрация в банках",
+      "description": "Высокая концентрация средств в одном банке",
+      "metric": "maxBankConcentration",
+      "thresholds": {
+        "critical": 80,
+        "high": 70,
+        "medium": 60,
+        "low": 50
+      },
+      "operator": "greater_than",
+      "message": "Концентрация в одном банке: {value}%. Риск блокировки счетов",
+      "recommendations": [
+        "Диверсифицировать банковские партнерства",
+        "Открыть счета в других банках",
+        "Перераспределить остатки"
+      ]
+    },
+    "margin_decline": {
+      "name": "Снижение маржинальности",
+      "description": "EBITDA маржа снизилась относительно плана",
+      "metric": "marginVariance",
+      "thresholds": {
+        "critical": -5.0,
+        "high": -3.0,
+        "medium": -2.0,
+        "low": -1.0
+      },
+      "operator": "less_than",
+      "message": "EBITDA маржа снизилась на {value} п.п. относительно плана",
+      "recommendations": [
+        "Анализ причин роста затрат",
+        "Пересмотр ценовой политики",
+        "Оптимизация операционных расходов"
+      ]
+    },
+    "interest_coverage": {
+      "name": "Покрытие процентов",
+      "description": "Низкое покрытие процентных расходов",
+      "metric": "coefficients.interestCoverage",
+      "thresholds": {
+        "critical": 2.0,
+        "high": 3.0,
+        "medium": 5.0,
+        "low": 10.0
+      },
+      "operator": "less_than",
+      "message": "Покрытие процентов: {value}x. Риск невыполнения долговых обязательств",
+      "recommendations": [
+        "Снижение процентной нагрузки",
+        "Рефинансирование под меньший процент",
+        "Увеличение операционной прибыли"
+      ]
+    },
+    "revenue_decline": {
+      "name": "Падение выручки",
+      "description": "Значительное снижение выручки относительно плана",
+      "metric": "revenueVariancePercent",
+      "thresholds": {
+        "critical": -15.0,
+        "high": -10.0,
+        "medium": -5.0,
+        "low": -2.0
+      },
+      "operator": "less_than",
+      "message": "Выручка снизилась на {value}% относительно плана",
+      "recommendations": [
+        "Анализ причин снижения продаж",
+        "Усиление маркетинговых активностей",
+        "Пересмотр продуктовой линейки"
+      ]
+    }
+  },
+  "alertSettings": {
+    "enabledAlerts": [
+      "cash_shortage",
+      "overdue_ar",
+      "dso_deterioration",
+      "ccc_deterioration",
+      "liquidity_risk",
+      "debt_burden",
+      "bank_concentration",
+      "margin_decline",
+      "interest_coverage",
+      "revenue_decline"
+    ],
+    "notificationChannels": {
+      "dashboard": true,
+      "email": false,
+      "sms": false,
+      "telegram": false
+    },
+    "updateFrequency": "realtime",
+    "maxAlertsDisplayed": 5,
+    "autoHideAfterMinutes": 0,
+    "priorityOrder": ["critical", "high", "medium", "low"]
+  },
+  "severityColors": {
+    "critical": "#ff3b30",
+    "high": "#ff6347", 
+    "medium": "#ff9500",
+    "low": "#34c759"
+  },
+  "alertActions": {
+    "cash_shortage": {
+      "buttons": [
+        {"label": "Отчет по ДДС", "action": "generateCashFlowReport"},
+        {"label": "План пополнения", "action": "createCashPlan"}
+      ]
+    },
+    "overdue_ar": {
+      "buttons": [
+        {"label": "Реестр просрочки", "action": "generateOverdueReport"},
+        {"label": "Работа с должниками", "action": "initiateCollection"}
+      ]
+    },
+    "bank_concentration": {
+      "buttons": [
+        {"label": "Анализ остатков", "action": "analyzeCashPosition"},
+        {"label": "План диверсификации", "action": "createDiversificationPlan"}
+      ]
+    }
+  }
+}

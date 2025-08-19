@@ -1,0 +1,209 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CFO Dashboard Data Schema",
+  "type": "object",
+  "required": ["meta", "kpi", "timeSeries", "structures"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "period": {"type": "string", "format": "date"},
+        "currency": {"type": "string", "enum": ["RUB", "USD", "EUR"]},
+        "company": {"type": "string"},
+        "reportType": {"type": "string", "enum": ["monthly", "quarterly", "yearly"]}
+      }
+    },
+    "kpi": {
+      "type": "object",
+      "properties": {
+        "revenue": {
+          "type": "object",
+          "properties": {
+            "current": {"type": "number"},
+            "momChange": {"type": "number"},
+            "yoyChange": {"type": "number"}
+          }
+        },
+        "ebitda": {"type": "number"},
+        "ocf": {"type": "number"},
+        "cashEnd": {"type": "number"},
+        "cashRunwayMonths": {"type": "number"},
+        "margins": {
+          "type": "object",
+          "properties": {
+            "gross": {"type": "number", "minimum": 0, "maximum": 100},
+            "ebitda": {"type": "number"},
+            "net": {"type": "number"}
+          }
+        }
+      }
+    },
+    "timeSeries": {
+      "type": "object",
+      "properties": {
+        "revenue": {
+          "type": "object",
+          "properties": {
+            "fact": {"type": "array", "items": {"type": "number"}},
+            "plan": {"type": "array", "items": {"type": "number"}},
+            "prevYear": {"type": "array", "items": {"type": "number"}},
+            "forecast": {"type": "array", "items": {"type": "number"}},
+            "dates": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "margins": {
+          "type": "object",
+          "properties": {
+            "gross": {"type": "array", "items": {"type": "number"}},
+            "ebitda": {"type": "array", "items": {"type": "number"}},
+            "net": {"type": "array", "items": {"type": "number"}},
+            "dates": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "cashFlow": {
+          "type": "object",
+          "properties": {
+            "opening": {"type": "number"},
+            "ocf": {"type": "array", "items": {"type": "number"}},
+            "icf": {"type": "array", "items": {"type": "number"}},
+            "fcf": {"type": "array", "items": {"type": "number"}},
+            "closing": {"type": "number"},
+            "labels": {"type": "array", "items": {"type": "string"}}
+          }
+        }
+      }
+    },
+    "structures": {
+      "type": "object",
+      "properties": {
+        "byBranch": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "revenue": {"type": "number"},
+              "profit": {"type": "number"},
+              "margin": {"type": "number"},
+              "share": {"type": "number"}
+            }
+          }
+        },
+        "byOrganization": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "revenue": {"type": "number"},
+              "momChange": {"type": "number"},
+              "yoyChange": {"type": "number"},
+              "sparkline": {"type": "array", "items": {"type": "number"}}
+            }
+          }
+        }
+      }
+    },
+    "debtors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "amount": {"type": "number"},
+          "daysOverdue": {"type": "number"},
+          "bucket": {"type": "string", "enum": ["0-30", "31-60", "61-90", "90+"]},
+          "expectedDate": {"type": "string", "format": "date"},
+          "creditLimit": {"type": "number"},
+          "manager": {"type": "string"},
+          "riskLevel": {"type": "string", "enum": ["low", "medium", "high"]}
+        }
+      }
+    },
+    "arAging": {
+      "type": "object",
+      "properties": {
+        "buckets": {
+          "type": "object",
+          "properties": {
+            "0-30": {"type": "number"},
+            "31-60": {"type": "number"},
+            "61-90": {"type": "number"},
+            "90+": {"type": "number"}
+          }
+        },
+        "totalAR": {"type": "number"}
+      }
+    },
+    "coefficients": {
+      "type": "object",
+      "properties": {
+        "current": {"type": "number"},
+        "quick": {"type": "number"},
+        "debtEbitda": {"type": "number"},
+        "interestCoverage": {"type": "number"},
+        "autonomy": {"type": "number"},
+        "dso": {"type": "number"},
+        "dpo": {"type": "number"},
+        "dii": {"type": "number"},
+        "ccc": {"type": "number"},
+        "targets": {
+          "type": "object",
+          "properties": {
+            "current": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+            "quick": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+            "debtEbitda": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+            "ccc": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
+          }
+        },
+        "sparklines": {
+          "type": "object",
+          "properties": {
+            "current": {"type": "array", "items": {"type": "number"}},
+            "dso": {"type": "array", "items": {"type": "number"}},
+            "ccc": {"type": "array", "items": {"type": "number"}}
+          }
+        }
+      }
+    },
+    "planFactDrivers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "driver": {"type": "string"},
+          "fact": {"type": "number"},
+          "plan": {"type": "number"},
+          "variance": {"type": "number"},
+          "variancePercent": {"type": "number"}
+        }
+      }
+    },
+    "cashAccounts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "bank": {"type": "string"},
+          "available": {"type": "number"},
+          "blocked": {"type": "number"},
+          "concentration": {"type": "number"},
+          "sparkline": {"type": "array", "items": {"type": "number"}}
+        }
+      }
+    },
+    "alerts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {"type": "string", "enum": ["cash_shortage", "overdue", "covenant_breach", "concentration"]},
+          "severity": {"type": "string", "enum": ["low", "medium", "high", "critical"]},
+          "message": {"type": "string"},
+          "value": {"type": "number"},
+          "threshold": {"type": "number"}
+        }
+      }
+    }
+  }
+}

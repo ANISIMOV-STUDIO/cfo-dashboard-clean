@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "period": "2024-11-30",
+    "currency": "RUB", 
+    "company": "ООО Прогресс",
+    "reportType": "monthly",
+    "schemaVersion": "3.0.0"
+  },
+  "kpi": {
+    "revenue": {
+      "current": 125600000,
+      "momChange": 8.5,
+      "yoyChange": 23.2
+    },
+    "ebitda": 28900000,
+    "ocf": 31200000,
+    "cashEnd": 45600000,
+    "cashRunwayMonths": 4.2,
+    "margins": {
+      "gross": 42.3,
+      "ebitda": 23.1,
+      "net": 18.7
+    }
+  },
+  "timeSeries": {
+    "revenue": {
+      "fact": [98500, 105200, 112300, 108900, 115600, 120300, 125600],
+      "plan": [100000, 108000, 116000, 112000, 118000, 124000, 130000],
+      "prevYear": [89200, 92100, 95800, 99200, 102500, 108900, 115200],
+      "forecast": [131000, 136500, 142000],
+      "dates": ["2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11"]
+    },
+    "margins": {
+      "gross": [41.2, 41.8, 42.1, 41.6, 42.0, 42.2, 42.3],
+      "ebitda": [22.1, 22.8, 23.2, 22.5, 23.0, 23.3, 23.1],
+      "net": [17.8, 18.2, 18.6, 18.1, 18.4, 18.9, 18.7],
+      "dates": ["2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11"]
+    },
+    "cashFlow": {
+      "opening": 38200000,
+      "ocf": [31200000],
+      "icf": [-15600000],
+      "fcf": [15600000],
+      "closing": 45600000,
+      "labels": ["Opening", "OCF", "ICF", "FCF", "Closing"]
+    }
+  },
+  "structures": {
+    "byBranch": [
+      {"name": "Розница", "revenue": 75360000, "profit": 18200000, "margin": 24.1, "share": 60.0},
+      {"name": "Опт", "revenue": 37680000, "profit": 8900000, "margin": 23.6, "share": 30.0},
+      {"name": "Онлайн", "revenue": 12560000, "profit": 1800000, "margin": 14.3, "share": 10.0}
+    ],
+    "byOrganization": [
+      {"name": "Прогресс Центр", "revenue": 45600000, "momChange": 12.3, "yoyChange": 28.1, "sparkline": [38200, 39800, 42100, 44300, 45600]},
+      {"name": "Прогресс Юг", "revenue": 38200000, "momChange": 6.8, "yoyChange": 19.5, "sparkline": [35800, 36200, 37100, 37800, 38200]},
+      {"name": "Прогресс Север", "revenue": 25600000, "momChange": 4.2, "yoyChange": 16.8, "sparkline": [23800, 24200, 24800, 25200, 25600]},
+      {"name": "Прогресс Восток", "revenue": 16200000, "momChange": 8.9, "yoyChange": 22.3, "sparkline": [14200, 14800, 15400, 15800, 16200]}
+    ]
+  },
+  "debtors": [
+    {"name": "ООО Альфа", "amount": 5600000, "daysOverdue": 45, "bucket": "31-60", "expectedDate": "2024-12-15", "creditLimit": 8000000, "manager": "Иванов И.И.", "riskLevel": "medium"},
+    {"name": "ИП Петров", "amount": 3200000, "daysOverdue": 15, "bucket": "0-30", "expectedDate": "2024-12-05", "creditLimit": 5000000, "manager": "Сидоров С.С.", "riskLevel": "low"},
+    {"name": "ООО Бета", "amount": 2800000, "daysOverdue": 95, "bucket": "90+", "expectedDate": "2025-01-30", "creditLimit": 3000000, "manager": "Козлов К.К.", "riskLevel": "high"},
+    {"name": "ООО Гамма", "amount": 1900000, "daysOverdue": 0, "bucket": "0-30", "expectedDate": "2024-12-10", "creditLimit": 4000000, "manager": "Волков В.В.", "riskLevel": "low"}
+  ],
+  "arAging": {
+    "buckets": {
+      "0-30": 8200000,
+      "31-60": 6800000,
+      "61-90": 2400000,
+      "90+": 3100000
+    },
+    "totalAR": 20500000
+  },
+  "coefficients": {
+    "current": 2.1,
+    "quick": 1.8,
+    "debtEbitda": 2.3,
+    "interestCoverage": 12.5,
+    "autonomy": 0.68,
+    "dso": 47,
+    "dpo": 35,
+    "dii": 28,
+    "ccc": 40,
+    "targets": {
+      "current": [1.5, 2.5],
+      "quick": [1.0, 2.0],
+      "debtEbitda": [0.0, 3.0],
+      "ccc": [30, 50]
+    },
+    "sparklines": {
+      "current": [1.9, 2.0, 2.1, 2.0, 2.1],
+      "dso": [45, 46, 48, 47, 47],
+      "ccc": [42, 41, 39, 40, 40]
+    }
+  },
+  "planFactDrivers": [
+    {"driver": "Выручка", "fact": 125600000, "plan": 130000000, "variance": -4400000, "variancePercent": -3.4},
+    {"driver": "COGS", "fact": 72500000, "plan": 75400000, "variance": 2900000, "variancePercent": 3.8},
+    {"driver": "Валовая", "fact": 53100000, "plan": 54600000, "variance": -1500000, "variancePercent": -2.7},
+    {"driver": "OPEX", "fact": 24200000, "plan": 24000000, "variance": -200000, "variancePercent": -0.8},
+    {"driver": "EBITDA", "fact": 28900000, "plan": 30600000, "variance": -1700000, "variancePercent": -5.6}
+  ],
+  "cashAccounts": [
+    {"bank": "Сбербанк", "available": 28600000, "blocked": 1200000, "concentration": 65.2, "sparkline": [26800, 27200, 28100, 28600, 28600]},
+    {"bank": "ВТБ", "available": 12800000, "blocked": 0, "concentration": 28.1, "sparkline": [13200, 12900, 12600, 12800, 12800]},
+    {"bank": "Альфа-Банк", "available": 3200000, "blocked": 0, "concentration": 7.0, "sparkline": [3100, 3000, 3100, 3200, 3200]}
+  ],
+  "alerts": [
+    {"type": "overdue", "severity": "medium", "message": "Просрочка по ООО Бета превышает 90 дней", "value": 95, "threshold": 90},
+    {"type": "concentration", "severity": "high", "message": "Концентрация в Сбербанке превышает 60%", "value": 65.2, "threshold": 60},
+    {"type": "cash_shortage", "severity": "medium", "message": "Cash Runway менее 6 месяцев", "value": 4.2, "threshold": 6}
+  ]
+}
