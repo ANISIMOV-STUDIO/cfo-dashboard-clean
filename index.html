@@ -2250,7 +2250,6 @@
 </head>
 <body>
     <!-- CFO Dashboard Bundle - IIFE (Sprint 6) -->
-    <script src="dashboard.bundle.js"></script>
     <div id="dashboard" class="dashboard">
         <!-- Print header (hidden in normal view) -->
         <div class="print-header" style="display: none;">
@@ -2381,13 +2380,13 @@
             <!-- Навигация по страницам (Sprint 4) -->
         <nav class="page-navigation" role="tablist" aria-label="Разделы дашборда">
             <div class="export-controls">
-                <button class="export-page-btn" onclick="exportCurrentPage()" title="Экспорт текущей страницы в PNG">
+                <button class="export-page-btn" title="Экспорт текущей страницы в PNG">
                     📸 Страница
                 </button>
-                <button class="export-all-btn" onclick="exportAllPages()" title="Экспорт всех страниц в PNG">
+                <button class="export-all-btn" title="Экспорт всех страниц в PNG">
                     📁 Все
                 </button>
-                <button class="batch-export-btn" onclick="executeBatchExport()" title="E2: Batch-экспорт с манифестом">
+                <button class="batch-export-btn" title="E2: Batch-экспорт с манифестом">
                     📦 Batch
                 </button>
             </div>
@@ -2478,8 +2477,8 @@
 
         <!-- Print controls (moved outside fixed header) -->
         <div class="print-controls" style="position: fixed; top: 20px; right: 20px; z-index: 1001;">
-            <button onclick="printCurrentPage()" class="toggle-btn">Печать страницы</button>
-            <button onclick="printAllPages()" class="toggle-btn">Печать все</button>
+            <button class="toggle-btn print-page-btn">Печать страницы</button>
+            <button class="toggle-btn print-all-btn">Печать все</button>
         </div>
 
         <!-- D1: Баннер рекомендаций -->
@@ -2488,14 +2487,14 @@
                 <div class="banner-title">
                     💡 Рекомендации
                 </div>
-                <button class="banner-close" onclick="hideRecommendationBanner()">&times;</button>
+                <button class="banner-close">&times;</button>
             </div>
             <div class="banner-content" id="recommendation-text">
                 <!-- Текст рекомендации будет вставлен динамически -->
             </div>
             <div class="banner-actions">
                 <button class="banner-btn primary" id="recommendation-details">Подробнее</button>
-                <button class="banner-btn" onclick="snoozeRecommendationBanner()">Скрыть на сегодня</button>
+                <button class="banner-btn">Скрыть на сегодня</button>
             </div>
         </div>
 
@@ -8963,6 +8962,23 @@
     });
 
 })();
+    </script>
+    <script>
+    (function() {
+        function bind(selector, handler) {
+            var el = document.querySelector(selector);
+            if (el && typeof handler === 'function') {
+                el.addEventListener('click', handler);
+            }
+        }
+        bind('.export-page-btn', window.exportCurrentPage);
+        bind('.export-all-btn', window.exportAllPages);
+        bind('.batch-export-btn', window.executeBatchExport);
+        bind('.print-controls .print-page-btn', window.printCurrentPage);
+        bind('.print-controls .print-all-btn', window.printAllPages);
+        bind('#recommendations-banner .banner-close', window.hideRecommendationBanner);
+        bind('#recommendations-banner .banner-btn:not(.primary)', window.snoozeRecommendationBanner);
+    })();
     </script>
 </body>
 </html>
