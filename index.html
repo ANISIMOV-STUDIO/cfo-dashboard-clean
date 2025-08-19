@@ -190,7 +190,7 @@
         /* D1: Баннер рекомендаций - умные подсказки */
         .recommendations-banner {
             position: fixed;
-            top: 170px; /* Под фиксированной шапкой */
+            top: calc(var(--header-h) + 10px);
             left: 20px;
             right: 20px;
             z-index: 999;
@@ -2250,7 +2250,6 @@
 </head>
 <body>
     <!-- CFO Dashboard Bundle - IIFE (Sprint 6) -->
-    <script src="dashboard.bundle.js"></script>
     <div id="dashboard" class="dashboard">
         <!-- Print header (hidden in normal view) -->
         <div class="print-header" style="display: none;">
@@ -2381,13 +2380,13 @@
             <!-- Навигация по страницам (Sprint 4) -->
         <nav class="page-navigation" role="tablist" aria-label="Разделы дашборда">
             <div class="export-controls">
-                <button class="export-page-btn" onclick="exportCurrentPage()" title="Экспорт текущей страницы в PNG">
+                <button class="export-page-btn" title="Экспорт текущей страницы в PNG">
                     📸 Страница
                 </button>
-                <button class="export-all-btn" onclick="exportAllPages()" title="Экспорт всех страниц в PNG">
+                <button class="export-all-btn" title="Экспорт всех страниц в PNG">
                     📁 Все
                 </button>
-                <button class="batch-export-btn" onclick="executeBatchExport()" title="E2: Batch-экспорт с манифестом">
+                <button class="batch-export-btn" title="E2: Batch-экспорт с манифестом">
                     📦 Batch
                 </button>
             </div>
@@ -2478,8 +2477,8 @@
 
         <!-- Print controls (moved outside fixed header) -->
         <div class="print-controls" style="position: fixed; top: 20px; right: 20px; z-index: 1001;">
-            <button onclick="printCurrentPage()" class="toggle-btn">Печать страницы</button>
-            <button onclick="printAllPages()" class="toggle-btn">Печать все</button>
+            <button class="toggle-btn print-page-btn">Печать страницы</button>
+            <button class="toggle-btn print-all-btn">Печать все</button>
         </div>
 
         <!-- D1: Баннер рекомендаций -->
@@ -2488,14 +2487,14 @@
                 <div class="banner-title">
                     💡 Рекомендации
                 </div>
-                <button class="banner-close" onclick="hideRecommendationBanner()">&times;</button>
+                <button class="banner-close">&times;</button>
             </div>
             <div class="banner-content" id="recommendation-text">
                 <!-- Текст рекомендации будет вставлен динамически -->
             </div>
             <div class="banner-actions">
                 <button class="banner-btn primary" id="recommendation-details">Подробнее</button>
-                <button class="banner-btn" onclick="snoozeRecommendationBanner()">Скрыть на сегодня</button>
+                <button class="banner-btn">Скрыть на сегодня</button>
             </div>
         </div>
 
@@ -4150,13 +4149,13 @@
                 <div class="alert-header">
                     <div class="alert-title">${icon} ${alert.type.toUpperCase()}</div>
                     <div class="alert-actions">
-                        <button class="alert-action-btn" onclick="snoozeAlert('${alertId}', '24h')" title="Отложить на 24 часа">
+                        <button class="alert-action-btn alert-snooze" data-alert-id="${alertId}" data-duration="24h" title="Отложить на 24 часа">
                             💤
                         </button>
-                        <button class="alert-action-btn" onclick="jumpToAlertSource('${alert.type}')" title="Перейти к источнику">
+                        <button class="alert-action-btn alert-jump" data-alert-type="${alert.type}" title="Перейти к источнику">
                             🔍
                         </button>
-                        <button class="alert-action-btn" onclick="dismissAlert('${alertId}')" title="Скрыть навсегда">
+                        <button class="alert-action-btn alert-dismiss" data-alert-id="${alertId}" title="Скрыть навсегда">
                             ✕
                         </button>
                     </div>
@@ -4164,7 +4163,7 @@
                 <div class="alert-message">${alert.message}</div>
                 <div class="alert-meta">
                     <span class="alert-time">${timeAgo}</span>
-                    <span class="alert-source-link" onclick="jumpToAlertSource('${alert.type}')">
+                    <span class="alert-source-link" data-alert-type="${alert.type}">
                         Перейти к деталям →
                     </span>
                 </div>
@@ -4224,6 +4223,30 @@
             alertsBody.innerHTML = filteredAlerts
                 .map((alert, index) => createAlertHTML(alert, index))
                 .join('');
+
+            alertsBody.querySelectorAll('.alert-snooze').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    snoozeAlert(btn.dataset.alertId, btn.dataset.duration);
+                });
+            });
+
+            alertsBody.querySelectorAll('.alert-jump').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    jumpToAlertSource(btn.dataset.alertType);
+                });
+            });
+
+            alertsBody.querySelectorAll('.alert-dismiss').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    dismissAlert(btn.dataset.alertId);
+                });
+            });
+
+            alertsBody.querySelectorAll('.alert-source-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    jumpToAlertSource(link.dataset.alertType);
+                });
+            });
         }
     }
 
@@ -5808,13 +5831,14 @@
         banner.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>${content.join(' | ')}</div>
-                <button onclick="this.parentElement.parentElement.remove()" 
-                        style="background: none; border: none; color: white; cursor: pointer; font-size: 16px; padding: 0 4px;">✕</button>
+                <button class="banner-close" style="background: none; border: none; color: white; cursor: pointer; font-size: 16px; padding: 0 4px;">✕</button>
             </div>
         `;
         
         document.body.appendChild(banner);
-        
+
+        banner.querySelector('.banner-close').addEventListener('click', () => banner.remove());
+
         // Автоскрытие через 10 секунд
         setTimeout(() => {
             if (document.getElementById('validation-banner')) {
@@ -6505,12 +6529,12 @@
         textElement.textContent = formatRecommendationMessage(rule, data);
         
         // Настраиваем кнопку "Подробнее"
-        detailsBtn.onclick = () => {
+        detailsBtn.addEventListener('click', () => {
             hideRecommendationBanner();
             if (rule.targetPage) {
                 setPage(rule.targetPage);
             }
-        };
+        }, { once: true });
         
         // Сохраняем текущее правило
         banner.dataset.currentRule = rule.id;
@@ -8717,42 +8741,21 @@
     
     // B1: Function to measure and set header height as CSS variable
     function updateHeaderHeight() {
-        const header = document.querySelector('.page-navigation');
-        const filters = document.querySelector('.dashboard-filters');
-        
-        let totalHeight = 0;
-        
-        if (header) {
-            totalHeight += header.offsetHeight;
-        }
-        if (filters) {
-            totalHeight += filters.offsetHeight;
-        }
-        
-        // Set CSS variable for header height
+        var header = document.querySelector('.dashboard-header');
+        if (!header) return;
+        var totalHeight = header.offsetHeight;
         document.documentElement.style.setProperty('--header-h', totalHeight + 'px');
-        
-        // Performance logging
         if (window.CFODashboard && window.CFODashboard.log) {
-            window.CFODashboard.log('info', 'headerHeightUpdated', { 
-                height: totalHeight + 'px',
-                header: header ? header.offsetHeight : 0,
-                filters: filters ? filters.offsetHeight : 0
-            });
+            window.CFODashboard.log('info', 'headerHeightUpdated', { height: totalHeight + 'px' });
         }
     }
     
-    // HOTFIX: Export global functions for HTML onclick handlers
+    // Expose API for external integrations
     window.printCurrentPage = printCurrentPage;
     window.printAllPages = printAllPages;
     window.exportCurrentPage = exportCurrentPage;
     window.exportAllPages = exportAllPages;
     window.executeBatchExport = executeBatchExport;
-    window.hideRecommendationBanner = hideRecommendationBanner;
-    window.snoozeRecommendationBanner = snoozeRecommendationBanner;
-    window.snoozeAlert = snoozeAlert;
-    window.jumpToAlertSource = jumpToAlertSource;
-    window.dismissAlert = dismissAlert;
 
     // Инициализация
     // B1: Error boundary - глобальная обработка ошибок
@@ -8926,10 +8929,12 @@
         // Инициализируем error boundary первым
         errorBoundary.init();
         
-        // B1: Update header height on window resize
-        window.addEventListener('resize', function() {
-            setTimeout(updateHeaderHeight, 100);
-        });
+        // B1: Update header height on window resize and element changes
+        var headerEl = document.querySelector('.dashboard-header');
+        window.addEventListener('resize', updateHeaderHeight);
+        if (headerEl && window.ResizeObserver) {
+            new ResizeObserver(updateHeaderHeight).observe(headerEl);
+        }
         
         try {
             // Инициализируем переключатели, фильтры, алерты, навигацию по страницам, плотность и клавиатурную навигацию
@@ -8963,6 +8968,23 @@
     });
 
 })();
+    </script>
+    <script>
+    (function() {
+        function bind(selector, handler) {
+            var el = document.querySelector(selector);
+            if (el && typeof handler === 'function') {
+                el.addEventListener('click', handler);
+            }
+        }
+        bind('.export-page-btn', window.exportCurrentPage);
+        bind('.export-all-btn', window.exportAllPages);
+        bind('.batch-export-btn', window.executeBatchExport);
+        bind('.print-controls .print-page-btn', window.printCurrentPage);
+        bind('.print-controls .print-all-btn', window.printAllPages);
+        bind('#recommendations-banner .banner-close', window.hideRecommendationBanner);
+        bind('#recommendations-banner .banner-btn:not(.primary)', window.snoozeRecommendationBanner);
+    })();
     </script>
 </body>
 </html>
