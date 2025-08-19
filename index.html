@@ -8739,16 +8739,6 @@
         }
     });
     
-    // B1: Function to measure and set header height as CSS variable
-    function updateHeaderHeight() {
-        var header = document.querySelector('.dashboard-header');
-        if (!header) return;
-        var totalHeight = header.offsetHeight;
-        document.documentElement.style.setProperty('--header-h', totalHeight + 'px');
-        if (window.CFODashboard && window.CFODashboard.log) {
-            window.CFODashboard.log('info', 'headerHeightUpdated', { height: totalHeight + 'px' });
-        }
-    }
     
     // Expose API for external integrations
     window.printCurrentPage = printCurrentPage;
@@ -8929,12 +8919,6 @@
         // Инициализируем error boundary первым
         errorBoundary.init();
         
-        // B1: Update header height on window resize and element changes
-        var headerEl = document.querySelector('.dashboard-header');
-        window.addEventListener('resize', updateHeaderHeight);
-        if (headerEl && window.ResizeObserver) {
-            new ResizeObserver(updateHeaderHeight).observe(headerEl);
-        }
         
         try {
             // Инициализируем переключатели, фильтры, алерты, навигацию по страницам, плотность и клавиатурную навигацию
@@ -8950,9 +8934,6 @@
             
             // Загружаем конфигурацию алертов
             loadAlertsConfig();
-            
-            // B1: Set CSS variable for header height to fix content overlap
-            updateHeaderHeight();
             
             // F2: Apply visual optimizations after UI initialization
             setTimeout(() => {
