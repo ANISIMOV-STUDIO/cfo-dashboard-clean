@@ -817,7 +817,31 @@
         } catch (e) {
             warnings.push('Function duplication check failed: ' + e.message);
         }
-        
+
+        // Check for inline event handlers
+        try {
+            var inlineHandlers = document.querySelectorAll('[onclick],[onchange],[onmouseover],[onmouseout],[onfocus],[onblur],[onkeydown],[onkeypress],[onkeyup],[onsubmit]');
+            if (inlineHandlers.length > 0) {
+                errors.push('Inline event handlers found: ' + inlineHandlers.length);
+            }
+        } catch (e) {
+            warnings.push('Inline handler check failed: ' + e.message);
+        }
+
+        // Check for transform: scale on canvas elements
+        try {
+            var canvases = document.querySelectorAll('canvas');
+            canvases.forEach(function(c) {
+                var style = window.getComputedStyle ? getComputedStyle(c) : c.style;
+                var transform = (c.style && c.style.transform) || (style && style.transform) || '';
+                if (/scale\(/.test(transform)) {
+                    errors.push('Canvas uses transform scale: #' + (c.id || 'unnamed'));
+                }
+            });
+        } catch (e) {
+            warnings.push('Canvas transform check failed: ' + e.message);
+        }
+
         // Check for undefined globals
         var requiredGlobals = ['Chart', 'CFODashboard', 'external1C'];
         requiredGlobals.forEach(function(global) {
