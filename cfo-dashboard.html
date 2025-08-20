@@ -8,66 +8,69 @@
   <link rel="stylesheet" href="theme-macos.css">
 </head>
 <body>
-  <div class="dashboard">
-    <div class="dashboard-header">
-      <div class="header-left">
-        <div class="title">CFO Dashboard</div>
-        <div id="loading-indicator" class="status">ООО Прогресс • Декабрь 2024</div>
+  <div id="app-scale" class="app-scale">
+    <div id="canvas" class="canvas">
+      <div class="dashboard">
+    <div class="header">
+      <div>
+        <div class="h-title">CFO Dashboard</div>
+        <div class="h-sub">ООО Прогресс • Декабрь 2024</div>
       </div>
     </div>
     <div class="kpi-row">
-      <div class="kpi-card kpi-revenue">
-        <div class="kpi-value" id="kpi-revenue-value">125.6 млн ₽</div>
-        <div class="kpi-label">Выручка</div>
-        <div class="kpi-change positive" id="kpi-revenue-change">+8.5%</div>
+      <div class="kpi">
+        <div class="val">125.6 млн ₽</div>
+        <div class="cap">Выручка</div>
+        <div class="change positive">+8.5%</div>
       </div>
-      <div class="kpi-card kpi-ebitda">
-        <div class="kpi-value" id="kpi-ebitda-value">28.9 млн ₽</div>
-        <div class="kpi-label">EBITDA</div>
-        <div class="kpi-change positive" id="kpi-ebitda-change">+12.3%</div>
+      <div class="kpi">
+        <div class="val">28.9 млн ₽</div>
+        <div class="cap">EBITDA</div>
+        <div class="change positive">+12.3%</div>
       </div>
-      <div class="kpi-card kpi-cash">
-        <div class="kpi-value" id="kpi-cash-value">45.6 млн ₽</div>
-        <div class="kpi-label">Остаток ДС</div>
-        <div class="kpi-change neutral" id="kpi-cash-change">4.2 мес</div>
+      <div class="kpi">
+        <div class="val">45.6 млн ₽</div>
+        <div class="cap">Остаток ДС</div>
+        <div class="change neutral">4.2 мес</div>
       </div>
-      <div class="kpi-card kpi-margin">
-        <div class="kpi-value" id="kpi-margin-value">23.1%</div>
-        <div class="kpi-label">EBITDA маржа</div>
-        <div class="kpi-change positive" id="kpi-margin-change">+0.8п.п.</div>
+      <div class="kpi">
+        <div class="val">23.1%</div>
+        <div class="cap">EBITDA маржа</div>
+        <div class="change positive">+0.8п.п.</div>
       </div>
     </div>
     <div id="alerts-container" aria-live="polite"></div>
-    <div class="controls">
-      <div class="control">
-        <label>Период</label>
-        <div class="preset-group" role="tablist" aria-label="Быстрый период">
-          <button class="preset-btn active" data-preset="month">Месяц</button>
-          <button class="preset-btn" data-preset="quarter">Квартал</button>
-          <button class="preset-btn" data-preset="year">Год</button>
-        </div>
+    <div class="filters">
+      <div class="preset-group" role="tablist" aria-label="Быстрый период">
+        <button class="preset-btn active" data-preset="month">Месяц</button>
+        <button class="preset-btn" data-preset="quarter">Квартал</button>
+        <button class="preset-btn" data-preset="year">Год</button>
       </div>
-      <div class="control">
-        <label>Компания</label>
-        <select id="company-select">
-          <option value="all">Все компании</option>
-          <option value="progress">ООО Прогресс</option>
-        </select>
+      
+      <div class="select" data-select-id="company">
+        <button class="sel-btn">ООО Прогресс</button>
+        <ul class="sel-menu" role="listbox">
+          <li class="sel-item" data-value="all">Все компании</li>
+          <li class="sel-item" data-value="progress">ООО Прогресс</li>
+        </ul>
       </div>
-      <div class="control">
-        <label>Режим</label>
-        <select id="mode-select">
-          <option value="absolute" selected>Абсолютные</option>
-          <option value="percentage">Доли (100%)</option>
-        </select>
+      
+      <div class="select" data-select-id="mode">
+        <button class="sel-btn">Абсолютные</button>
+        <ul class="sel-menu" role="listbox">
+          <li class="sel-item" data-value="absolute">Абсолютные</li>
+          <li class="sel-item" data-value="percentage">Доли (100%)</li>
+        </ul>
       </div>
-      <div class="control">
-        <label>Сравнение</label>
-        <select id="comparison-select">
-          <option value="none">Без сравнения</option>
-          <option value="prev-year" selected>К пред. году</option>
-        </select>
+      
+      <div class="select" data-select-id="comparison">
+        <button class="sel-btn">К пред. году</button>
+        <ul class="sel-menu" role="listbox">
+          <li class="sel-item" data-value="none">Без сравнения</li>
+          <li class="sel-item" data-value="prev-year">К пред. году</li>
+        </ul>
       </div>
+      
       <div class="interaction-status">
         <span id="filter-indicator" class="filter-status"></span>
         <button id="toggle-realtime-btn" class="realtime-btn active" title="Переключить авто-обновление">📡</button>
@@ -75,7 +78,137 @@
         <button id="reset-all-btn" class="reset-btn" title="Сбросить все фильтры и масштабирование (ESC)">🔄</button>
       </div>
     </div>
-    <div class="page-navigation">
+    <main id="pages" class="content">
+      <section id="page-overview" class="page-content active">
+        <div class="grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Динамика выручки, млн ₽</div>
+              <div class="card-subtle">Факт · План · ПГ · Прогноз</div>
+            </div>
+            <div class="chart-body">
+              <canvas id="revenue-trend-chart" data-lazy="chart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Маржинальность, %</div>
+              <div class="card-subtle">Валовая · EBITDA · Чистая</div>
+            </div>
+            <div class="chart-body">
+              <canvas id="margins-trend-chart" data-lazy="chart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Движение ДС (Waterfall), млн ₽</div>
+              <div class="card-subtle">Opening → OCF → ICF → FCF → Closing</div>
+            </div>
+            <div class="chart-body">
+              <canvas id="cashflow-chart" data-lazy="chart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">План vs Факт (Variance), млн ₽</div>
+              <div class="card-subtle">Revenue · COGS · Gross · OPEX · EBITDA</div>
+            </div>
+            <div class="chart-body">
+              <canvas id="variance-chart" data-lazy="chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="page-sales" class="page-content">
+        <div class="grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Выручка по направлениям</div>
+              <div class="card-subtle">Абсолют / 100%</div>
+            </div>
+            <div class="chart-body">
+              <canvas id="branches-sales-chart" data-lazy="chart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Средний чек (тренд)</div>
+              <div class="card-subtle">Sparkline</div>
+            </div>
+            <div class="chart-body">
+              <canvas id="avg-check-chart" data-lazy="chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="page-profit" class="page-content">
+        <div class="grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">EBITDA Bridge (Plan → Fact)</div>
+              <div class="card-subtle">Waterfall</div>
+            </div>
+            <div class="chart-body">
+              <canvas id="ebitda-bridge-chart" data-lazy="chart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Маржа по филиалам</div>
+              <div class="card-subtle">Гориз. бары</div>
+            </div>
+            <div class="chart-body">
+              <canvas id="margin-branches-chart" data-lazy="chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="page-cash" class="page-content">
+        <div class="grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Cash Flow Bridge</div>
+              <div class="card-subtle">OCF · ICF · FCF</div>
+            </div>
+            <div class="chart-body">
+              <canvas id="cashflow-bridge-chart" data-lazy="chart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Прогноз ликвидности (недели)</div>
+              <div class="card-subtle">Линия</div>
+            </div>
+            <div class="chart-body">
+              <canvas id="weekly-forecast-chart" data-lazy="chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="page-ar" class="page-content">
+        <div class="grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Aging (0-30 / 31-60 / 61-90 / 90+)</div>
+              <div class="card-subtle">Гориз. бары</div>
+            </div>
+            <div class="chart-body">
+              <canvas id="aging-analysis-chart" data-lazy="chart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">DSO (тренд)</div>
+              <div class="card-subtle">Линия</div>
+            </div>
+            <div class="chart-body">
+              <canvas id="dso-trends-chart" data-lazy="chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <div class="footer-tabs">
       <div class="segmented" role="tablist" aria-label="Разделы">
         <button class="segment-tab active" data-page="overview" aria-selected="true">Обзор</button>
         <button class="segment-tab" data-page="sales">Продажи</button>
@@ -84,40 +217,8 @@
         <button class="segment-tab" data-page="ar">Дебиторка</button>
       </div>
     </div>
-    <main id="pages">
-      <section id="page-overview" class="page-content active">
-        <div class="content-grid">
-          <div class="card"><div class="card-header"><div class="card-title">Динамика выручки, млн ₽</div><div class="card-subtle">Факт · План · ПГ · Прогноз</div></div><div class="chart-body"><canvas id="revenue-trend-chart" data-lazy="chart"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title">Маржинальность, %</div><div class="card-subtle">Валовая · EBITDA · Чистая</div></div><div class="chart-body"><canvas id="margins-trend-chart" data-lazy="chart"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title">Движение ДС (Waterfall), млн ₽</div><div class="card-subtle">Opening → OCF → ICF → FCF → Closing</div></div><div class="chart-body"><canvas id="cashflow-chart" data-lazy="chart"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title">План vs Факт (Variance), млн ₽</div><div class="card-subtle">Revenue · COGS · Gross · OPEX · EBITDA</div></div><div class="chart-body"><canvas id="variance-chart" data-lazy="chart"></canvas></div></div>
-        </div>
-      </section>
-      <section id="page-sales" class="page-content">
-        <div class="content-grid">
-          <div class="card"><div class="card-header"><div class="card-title">Выручка по направлениям</div><div class="card-subtle">Абсолют / 100%</div></div><div class="chart-body"><canvas id="branches-sales-chart" data-lazy="chart"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title">Средний чек (тренд)</div><div class="card-subtle">Sparkline</div></div><div class="chart-body"><canvas id="avg-check-chart" data-lazy="chart"></canvas></div></div>
-        </div>
-      </section>
-      <section id="page-profit" class="page-content">
-        <div class="content-grid">
-          <div class="card"><div class="card-header"><div class="card-title">EBITDA Bridge (Plan → Fact)</div><div class="card-subtle">Waterfall</div></div><div class="chart-body"><canvas id="ebitda-bridge-chart" data-lazy="chart"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title">Маржа по филиалам</div><div class="card-subtle">Гориз. бары</div></div><div class="chart-body"><canvas id="margin-branches-chart" data-lazy="chart"></canvas></div></div>
-        </div>
-      </section>
-      <section id="page-cash" class="page-content">
-        <div class="content-grid">
-          <div class="card"><div class="card-header"><div class="card-title">Cash Flow Bridge</div><div class="card-subtle">OCF · ICF · FCF</div></div><div class="chart-body"><canvas id="cashflow-bridge-chart" data-lazy="chart"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title">Прогноз ликвидности (недели)</div><div class="card-subtle">Линия</div></div><div class="chart-body"><canvas id="weekly-forecast-chart" data-lazy="chart"></canvas></div></div>
-        </div>
-      </section>
-      <section id="page-ar" class="page-content">
-        <div class="content-grid">
-          <div class="card"><div class="card-header"><div class="card-title">Aging (0-30 / 31-60 / 61-90 / 90+)</div><div class="card-subtle">Гориз. бары</div></div><div class="chart-body"><canvas id="aging-analysis-chart" data-lazy="chart"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title">DSO (тренд)</div><div class="card-subtle">Линия</div></div><div class="chart-body"><canvas id="dso-trends-chart" data-lazy="chart"></canvas></div></div>
-        </div>
-      </section>
-    </main>
+      </div>
+    </div>
   </div>
   <script src="lib/Chart-2.9.4.min.js"></script>
   

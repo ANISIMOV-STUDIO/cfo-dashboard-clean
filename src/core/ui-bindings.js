@@ -19,6 +19,11 @@
             this.bindRefreshButton();
             this.bindResetButton();
             this.bindRealtimeControls();
+            
+            // Initialize SelectLite
+            if (window.SelectLite) {
+                window.SelectLite.initialize();
+            }
         },
         
         // Bind print functionality to buttons
@@ -436,3 +441,102 @@
     window.UIBindings = UIBindings;
     
 })();
+
+// SelectLite Module - ES5 compatible custom selects
+window.SelectLite = (function() {
+    'use strict';
+    
+    function init(root) { 
+        root = root || document; 
+        var selects = root.querySelectorAll('.select .sel-btn');
+        for (var i = 0; i < selects.length; i++) { 
+            bind(selects[i]); 
+        }
+        
+        // Global click handler to close all dropdowns
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.select')) {
+                closeAll();
+            }
+        }, false);
+    }
+    
+    function bind(btn) {
+        // Toggle dropdown on button click
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            var wrap = e.target.closest('.select'); 
+            if (!wrap) return;
+            
+            var opened = wrap.classList.contains('open'); 
+            closeAll(); 
+            
+            if (!opened) {
+                wrap.classList.add('open');
+            }
+        }, false);
+        
+        // Bind option clicks
+        var items = btn.parentNode.querySelectorAll('.sel-item');
+        for (var j = 0; j < items.length; j++) {
+            items[j].addEventListener('click', function(ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                
+                // Update button text
+                var btnText = btn.querySelector('.sel-text') || btn;
+                var text = ev.target.textContent || ev.target.innerText;
+                if (btnText.tagName === 'BUTTON') {
+                    btnText.innerHTML = text + '<span class="sel-arrow">▾</span>';
+                } else {
+                    btnText.textContent = text;
+                }
+                
+                // Close dropdown
+                btn.parentNode.classList.remove('open');
+                
+                // Trigger change event
+                var selectId = btn.parentNode.getAttribute('data-select-id');
+                var value = ev.target.getAttribute('data-value') || text;
+                
+                if (selectId && window.DashboardState) {
+                    var filter = {};
+                    filter[selectId] = value;
+                    window.DashboardState.setFilters(filter);
+                }
+                
+                // Dispatch custom event
+                var event = new Event('selectchange', { bubbles: true });
+                event.selectId = selectId;
+                event.value = value;
+                btn.parentNode.dispatchEvent(event);
+                
+            }, false);
+        }
+    }
+    
+    function closeAll() { 
+        var opened = document.querySelectorAll('.select.open'); 
+        for (var k = 0; k < opened.length; k++) {
+            opened[k].classList.remove('open'); 
+        }
+    }
+    
+    return { 
+        initialize: init,
+        closeAll: closeAll
+    };
+})();
+
+// Auto-initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { 
+        if (window.SelectLite) {
+            window.SelectLite.initialize(); 
+        }
+    }, false);
+} else if (window.SelectLite) {
+    window.SelectLite.initialize();
+}

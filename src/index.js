@@ -3,6 +3,60 @@
  * Entry point and 1C external API
  * Compatible with V8WebKit 8.3.27
  */
+
+// Scaler Module - ES5 compatible auto-scaling
+(function() {
+    'use strict';
+    
+    var DESIGN_W = 1360, DESIGN_H = 860, MIN = 0.6, MAX = 1;
+    
+    function throttle(fn, ms) {
+        var t = 0;
+        return function() {
+            var now = Date.now();
+            if (now - t > ms) {
+                t = now;
+                fn();
+            }
+        };
+    }
+    
+    function applyScale() {
+        var vw = window.innerWidth || document.documentElement.clientWidth;
+        var vh = window.innerHeight || document.documentElement.clientHeight;
+        var s = Math.min(vw / DESIGN_W, vh / DESIGN_H);
+        if (s > MAX) s = MAX;
+        if (s < MIN) s = MIN;
+        
+        var canvas = document.getElementById('canvas');
+        var wrapper = document.getElementById('app-scale');
+        if (!canvas || !wrapper) return;
+        
+        canvas.style.transform = 'scale(' + s + ')';
+        
+        // Set physical size for proper click handling
+        wrapper.style.setProperty('--w', Math.round(DESIGN_W * s) + 'px');
+        wrapper.style.setProperty('--h', Math.round(DESIGN_H * s) + 'px');
+    }
+    
+    // Initialize scaler
+    function initScaler() {
+        applyScale();
+        var throttledScale = throttle(applyScale, 100);
+        window.addEventListener('resize', throttledScale, false);
+    }
+    
+    // Auto-initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initScaler, false);
+    } else {
+        initScaler();
+    }
+    
+    // Export for manual initialization
+    window.Scaler = { initialize: initScaler, applyScale: applyScale };
+})();
+
 (function() {
     'use strict';
     

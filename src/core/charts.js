@@ -26,6 +26,15 @@
             maintainAspectRatio: false,
             animation: { duration: 200 },
             legend: { display: false },
+            
+            // Disable ALL plugins and zoom/pan functionality
+            plugins: {
+                zoom: false,
+                pan: false,
+                legend: { display: false },
+                datalabels: false
+            },
+            
             tooltips: {
                 mode: 'index',
                 intersect: false,
@@ -45,33 +54,43 @@
                     }
                 }
             },
+            
             elements: {
                 point: { radius: 2, hitRadius: 6 },
-                line: { tension: 0.25 }
+                line: { tension: 0.25, borderWidth: 2 }
             },
+            
             scales: {
                 xAxes: [{
                     gridLines: {
-                        display: false
+                        display: false,
+                        drawOnChartArea: false
                     },
                     ticks: {
-                        fontSize: 11
+                        fontSize: 11,
+                        fontColor: '#6B7280'
                     }
                 }],
                 yAxes: [{
                     gridLines: {
                         color: 'rgba(17,24,39,0.08)',
-                        zeroLineColor: 'rgba(17,24,39,0.2)'
+                        zeroLineColor: 'rgba(17,24,39,0.2)',
+                        drawBorder: false
                     },
                     ticks: {
                         fontSize: 11,
                         fontColor: '#6B7280',
+                        maxTicksLimit: 6,
                         callback: function(value) {
                             return window.formatMoney ? window.formatMoney(value, 'RUB', 0) : value;
                         }
                     }
                 }]
-            }
+            },
+            
+            // Disable interactions that could trigger zoom
+            onHover: null,
+            onClick: null
         },
         
         // Create horizontal bar chart - unified implementation
@@ -395,11 +414,34 @@
             }
             
             return result;
+        },
+        
+        // Force disable zoom/pan plugins globally
+        disableZoomPan: function() {
+            // Disable Chart.js zoom plugin if it exists
+            if (window.Chart && window.Chart.plugins) {
+                var plugins = window.Chart.plugins.getAll();
+                for (var i = 0; i < plugins.length; i++) {
+                    var plugin = plugins[i];
+                    if (plugin.id === 'zoom' || plugin.id === 'pan') {
+                        window.Chart.plugins.unregister(plugin);
+                    }
+                }
+            }
+            
+            // Remove any zoom/pan related globals
+            if (window.chartjs) {
+                delete window.chartjs.zoom;
+                delete window.chartjs.pan;
+            }
         }
     };
     
     // Global helper function that was missing
     window.ensureHiDPI = ChartFactory.ensureCanvasSize;
+    
+    // Disable zoom/pan plugins on initialization
+    ChartFactory.disableZoomPan();
     
     // Export to window for global access
     window.ChartFactory = ChartFactory;

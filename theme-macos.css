@@ -1,9 +1,29 @@
 /* CFO Dashboard - macOS Theme */
-/* Fixed desktop layout: 1360×860, ES5 compatible, no internal scrolls */
+/* Scalable canvas layout: 1360×860, ES5 compatible, no internal scrolls */
 
 /* IMPORTANT: Override any inline styles */
 * {
   box-sizing: border-box !important;
+}
+
+/* App Scale Container */
+.app-scale {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: linear-gradient(180deg, #f7f8fa, #eef1f5);
+  overflow: hidden;
+}
+
+/* Fixed Design Canvas */
+.canvas {
+  width: 1360px;
+  height: 860px;
+  transform-origin: top center;
+  background: transparent;
 }
 
 :root {
@@ -44,48 +64,60 @@ body {
 .dashboard { 
   width: 1360px !important; 
   height: 860px !important; 
-  margin: 0 auto !important; 
+  margin: 0 !important; 
   overflow: hidden !important;
   display: flex !important;
   flex-direction: column !important;
-  padding: 0 24px !important;
-  box-sizing: border-box !important;
+  background: var(--bg);
+  position: relative;
 }
 
-/* Layout Sections - Fixed Heights */
-.dashboard-header { 
+/* macOS Header */
+.header { 
   height: 56px !important; 
   display: flex !important; 
   align-items: center !important; 
   justify-content: space-between !important; 
+  padding: 0 24px !important;
   flex-shrink: 0 !important;
-  padding: 8px 0 !important;
+}
+
+.h-title {
+  font: 700 24px/1.2 -apple-system, system-ui !important;
+  letter-spacing: -0.01em !important;
+  margin: 0 !important;
+}
+
+.h-sub {
+  font: 12px/1.4 -apple-system !important; 
+  color: #6B7280 !important;
+  margin-top: 2px !important;
 }
 
 .kpi-row { 
   height: 96px !important; 
   display: flex !important; 
   gap: 12px !important; 
-  margin-bottom: 12px !important;
+  padding: 0 24px !important;
   flex-shrink: 0 !important;
 }
 
-.controls {
+.filters {
   height: 56px !important; 
   display: flex !important; 
-  align-items: end !important; 
-  gap: 16px !important; 
+  align-items: center !important; 
+  gap: 12px !important; 
+  padding: 0 24px !important;
   flex-shrink: 0 !important;
-  padding-bottom: 8px !important;
 }
 
-.page-navigation { 
-  height: 36px !important; 
-  display: flex !important; 
-  align-items: center !important; 
-  gap: 8px !important; 
+.footer-tabs {
+  height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 10px 0 0 !important;
   flex-shrink: 0 !important;
-  margin-bottom: 16px !important;
 }
 
 main { 
@@ -112,91 +144,117 @@ main {
 }
 
 /* KPI Cards */
-.kpi-card { 
-  flex: 1 0 0; 
-  background: var(--panel); 
-  border-radius: var(--radius); 
-  padding: 12px 16px; 
-  box-shadow: var(--shadow); 
-  border: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.kpi { 
+  flex: 1 0 0 !important; 
+  background: #fff !important; 
+  border-radius: 16px !important; 
+  box-shadow: 0 2px 20px rgba(0,0,0,.06) !important; 
+  padding: 12px 16px !important; 
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+
+.kpi .val {
+  font-weight: 600 !important;
+  font-size: 20px !important;
+  margin-bottom: 2px !important;
+  line-height: 1.2 !important;
+}
+
+.kpi .cap {
+  font-size: 12px !important;
+  color: #6B7280 !important;
+  margin-bottom: 4px !important;
+}
+
+.kpi .change {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  padding: 2px 6px !important;
+  border-radius: 6px !important;
+  width: fit-content !important;
+}
+
+.kpi .change.positive { 
+  color: #27ae60 !important; 
+  background: rgba(39, 174, 96, 0.1) !important;
+}
+
+.kpi .change.negative { 
+  color: #e74c3c !important; 
+  background: rgba(231, 76, 60, 0.1) !important;
+}
+
+.kpi .change.neutral { 
+  color: #6B7280 !important; 
+  background: rgba(107, 114, 128, 0.1) !important;
+}
+
+/* Custom SelectLite Controls */
+.select {
   position: relative;
 }
 
-.kpi-value { 
-  font-size: 20px; 
-  font-weight: 600; 
-  color: var(--text); 
-  margin-bottom: 2px; 
-  line-height: 1.2; 
+.sel-btn {
+  height: 36px !important;
+  padding: 0 12px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 2px 20px rgba(0,0,0,.06) !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-width: 120px !important;
+  font-family: -apple-system, system-ui !important;
 }
 
-.kpi-label { 
-  font-size: 12px; 
-  color: var(--muted); 
-  margin-bottom: 4px; 
-  line-height: 1.2;
+.sel-btn:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,.12) !important;
 }
 
-.kpi-change { 
-  font-size: 11px; 
-  font-weight: 500; 
-  padding: 2px 6px;
-  border-radius: 6px;
-  width: fit-content;
+.sel-btn:after {
+  content: "▾" !important;
+  margin-left: 8px !important;
+  font-size: 12px !important;
+  color: #6B7280 !important;
 }
 
-.kpi-change.positive { 
-  color: #27ae60; 
-  background: rgba(39, 174, 96, 0.1);
+.sel-menu {
+  position: absolute !important;
+  top: 40px !important;
+  left: 0 !important;
+  min-width: 220px !important;
+  background: #fff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 14px 40px rgba(0,0,0,.08) !important;
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  display: none !important;
+  max-height: 280px !important;
+  overflow: auto !important;
+  z-index: 1000 !important;
 }
 
-.kpi-change.negative { 
-  color: #e74c3c; 
-  background: rgba(231, 76, 60, 0.1);
+.sel-item {
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
 }
 
-.kpi-change.neutral { 
-  color: var(--muted); 
-  background: rgba(107, 114, 128, 0.1);
+.sel-item:hover,
+.sel-item[aria-selected="true"] {
+  background: #F2F8FF !important;
 }
 
-/* Form Controls - macOS Style */
-.control { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 6px; 
-}
-
-.control label { 
-  font-size: 12px; 
-  color: var(--muted); 
-  font-weight: 500;
-}
-
-select, .preset-group { 
-  height: 40px; 
-  border-radius: var(--radius-button); 
-  border: 1px solid var(--border); 
-  background: var(--panel); 
-  box-shadow: var(--shadow); 
-  padding: 0 16px; 
-  font-size: 14px; 
-  color: var(--text); 
-  outline: none;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-select:focus, .preset-group:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
-}
-
-select:hover {
-  box-shadow: var(--shadow-hover);
+.select.open .sel-menu {
+  display: block !important;
 }
 
 .preset-group { 
@@ -233,35 +291,31 @@ select:hover {
 
 /* Navigation Tabs */
 .segmented { 
-  display: inline-flex; 
-  background: var(--panel); 
-  border-radius: var(--radius-button); 
-  padding: 3px; 
-  box-shadow: var(--shadow); 
-  border: 1px solid var(--border); 
+  display: inline-flex !important; 
+  background: #fff !important; 
+  border-radius: 12px !important; 
+  padding: 3px !important; 
+  border: 1px solid #e5e7eb !important; 
+  box-shadow: 0 2px 20px rgba(0,0,0,.06) !important;
 }
 
 .segment-tab { 
-  border: 0; 
-  background: transparent; 
-  padding: 8px 14px; 
-  border-radius: 9px; 
-  font-size: 13px; 
-  font-weight: 500;
-  color: var(--text); 
-  cursor: pointer; 
-  transition: all 0.2s ease;
-  font-family: inherit;
+  border: 0 !important; 
+  background: transparent !important; 
+  padding: 8px 14px !important; 
+  border-radius: 9px !important; 
+  font-size: 13px !important; 
+  cursor: pointer !important;
+  font-family: -apple-system, system-ui !important;
 }
 
 .segment-tab:hover:not(.active) { 
-  background: rgba(10, 132, 255, 0.1); 
+  background: rgba(10, 132, 255, 0.1) !important; 
 }
 
 .segment-tab.active { 
-  background: var(--accent); 
-  color: #fff; 
-  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
+  background: #0A84FF !important; 
+  color: #fff !important;
 }
 
 /* Page Content */
@@ -274,59 +328,59 @@ select:hover {
   display: block; 
 }
 
-.content-grid { 
-  display: flex !important; 
-  flex-wrap: wrap !important; 
-  gap: 16px !important; 
-  height: 588px !important;
-  max-height: 588px !important;
+.content {
+  height: calc(860px - 56px - 96px - 56px - 36px) !important;
+  flex: 1 1 0 !important;
   overflow: hidden !important;
 }
 
-/* Cards - Fixed Size */
+.grid { 
+  display: flex !important; 
+  flex-wrap: wrap !important; 
+  gap: 16px !important; 
+  padding: 0 24px !important;
+  height: 100% !important;
+}
+
 .card { 
   flex: 0 0 calc(50% - 8px) !important; 
-  height: 286px !important;
-  background: var(--panel) !important; 
-  border-radius: var(--radius) !important; 
-  box-shadow: var(--shadow) !important; 
-  border: 1px solid var(--border) !important;
-  overflow: hidden !important; 
+  height: 250px !important;
+  background: #fff !important; 
+  border-radius: 16px !important; 
+  box-shadow: 0 2px 20px rgba(0,0,0,.06) !important; 
   display: flex !important; 
   flex-direction: column !important;
+  overflow: hidden !important;
 }
 
 .card:hover {
   box-shadow: var(--shadow-hover);
 }
 
-.card .card-header { 
-  height: 44px; 
-  padding: 0 16px; 
-  border-bottom: 1px solid #eef2f7; 
-  display: flex; 
-  align-items: center; 
-  justify-content: space-between; 
-  flex-shrink: 0;
+.card-header { 
+  height: 44px !important; 
+  display: flex !important; 
+  align-items: center !important; 
+  justify-content: space-between !important; 
+  padding: 0 14px !important; 
+  border-bottom: 1px solid #eef2f7 !important;
+  flex-shrink: 0 !important;
 }
 
-.card .card-title { 
-  font-size: 14px; 
-  font-weight: 600; 
-  line-height: 1.3;
+.card-title {
+  font-size: 14px !important;
+  font-weight: 600 !important;
 }
 
-.card .card-subtle { 
-  font-size: 12px; 
-  color: var(--muted); 
+.card-subtle {
+  font-size: 12px !important;
+  color: #6B7280 !important;
 }
 
 .chart-body { 
-  height: calc(100% - 44px); 
-  padding: 12px; 
-  overflow: hidden; 
-  display: flex;
-  position: relative;
+  height: calc(100% - 44px) !important; 
+  padding: 10px !important; 
+  overflow: hidden !important;
 }
 
 .chart-body canvas { 
