@@ -7,47 +7,40 @@
     'use strict';
     
     var ChartFactory = {
-        // Default colors following IBCS guidelines
+        // IBCS colors for macOS design
         colors: {
-            primary: '#3498db',
-            secondary: '#95a5a6',
-            positive: '#27ae60',
-            negative: '#e74c3c',
-            warning: '#f39c12',
-            neutral: '#34495e',
-            forecast: '#9b59b6',
-            plan: '#17a2b8',
-            fact: '#28a745',
-            background: '#ecf0f1'
+            fact: '#111827',
+            plan: '#0A84FF',
+            forecast: '#9CA3AF',
+            prevYear: '#9CA3AF',
+            positive: '#16A34A',
+            negative: '#DC2626',
+            neutral: '#6B7280',
+            background: 'rgba(17,24,39,0.08)',
+            gridLines: 'rgba(17,24,39,0.08)'
         },
         
-        // Default chart options
+        // Default chart options optimized for v8webkit
         defaultOptions: {
             responsive: true,
             maintainAspectRatio: false,
-            animation: false, // Disable for performance in V8WebKit
+            animation: { duration: 200 },
+            elements: {
+                point: { radius: 2, hitRadius: 6 },
+                line: { tension: 0.25, borderWidth: 2 }
+            },
             interaction: {
                 intersect: false,
                 mode: 'index'
             },
             plugins: {
                 legend: {
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        boxWidth: 12,
-                        padding: 15,
-                        font: {
-                            size: 12,
-                            family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-                        }
-                    }
+                    display: false
                 },
                 tooltip: {
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleFont: { size: 13 },
-                    bodyFont: { size: 12 },
-                    footerFont: { size: 11 },
+                    titleFont: { size: 12 },
+                    bodyFont: { size: 11 },
                     cornerRadius: 6,
                     displayColors: true,
                     callbacks: {
@@ -72,12 +65,13 @@
                 },
                 y: {
                     grid: {
-                        color: 'rgba(189, 195, 199, 0.2)'
+                        color: 'rgba(17,24,39,0.08)'
                     },
                     ticks: {
                         font: { size: 11 },
+                        color: '#6B7280',
                         callback: function(value) {
-                            return window.formatMoney(value, 'RUB', 0);
+                            return window.formatMoney ? window.formatMoney(value, 'RUB', 0) : value;
                         }
                     }
                 }
