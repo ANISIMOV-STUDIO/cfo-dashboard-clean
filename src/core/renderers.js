@@ -309,7 +309,7 @@
                                         return window.formatMoney(value, 'RUB', 0);
                                     }
                                 }
-                            }
+                            }]
                         },
                         plugins: {
                             tooltip: {
@@ -487,7 +487,7 @@
                                         return window.formatMoney(value, 'RUB', 0);
                                     }
                                 }
-                            }
+                            }]
                         },
                         plugins: {
                             tooltip: {
@@ -546,11 +546,11 @@
                                     }
                                 },
                                 max: Math.max.apply(Math, branches.map(function(b) { return b.margin || 0; })) + 5
-                            },
-                            y: {
+                            }],
+                            yAxes: [{
                                 gridLines: { display: false },
                                 ticks: { fontSize: 11 }
-                            }
+                            }]
                         },
                         plugins: {
                             tooltip: {
@@ -638,7 +638,7 @@
                                         return window.formatMoney(value, 'RUB', 0);
                                     }
                                 }
-                            }
+                            }]
                         },
                         plugins: {
                             tooltip: {
@@ -708,7 +708,7 @@
                                         return window.formatMoney(value, 'RUB', 0);
                                     }
                                 }
-                            }
+                            }]
                         },
                         plugins: {
                             tooltip: {
@@ -771,11 +771,11 @@
                                         return window.formatMoney(value, 'RUB', 0);
                                     }
                                 }
-                            },
-                            y: {
+                            }],
+                            yAxes: [{
                                 gridLines: { display: false },
                                 ticks: { fontSize: 11 }
-                            }
+                            }]
                         },
                         plugins: {
                             tooltip: {
@@ -847,7 +847,7 @@
                                 },
                                 min: Math.min.apply(Math, dsoData) - 5,
                                 max: Math.max.apply(Math, dsoData) + 5
-                            }
+                            }]
                         },
                         plugins: {
                             tooltip: {

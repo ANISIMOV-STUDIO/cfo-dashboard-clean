@@ -8,7 +8,10 @@
       "Bash(mv:*)",
       "Bash(copy:*)",
       "Bash(cp:*)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(start:*)",
+      "Bash(node:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
