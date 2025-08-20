@@ -201,10 +201,7 @@
         hidePage: function(pageId) {
             var pageElement = document.getElementById('page-' + pageId);
             if (pageElement) {
-                // Clean up charts on the page being hidden
-                this.cleanupPageCharts(pageElement);
-                
-                pageElement.style.display = 'none';
+                pageElement.classList.remove('active');
                 pageElement.classList.add('page-hidden');
                 pageElement.setAttribute('aria-hidden', 'true');
             }
@@ -239,7 +236,6 @@
             // Then show the requested page
             var pageElement = document.getElementById('page-' + pageId);
             if (pageElement) {
-                pageElement.style.display = 'block';
                 pageElement.classList.remove('page-hidden');
                 pageElement.classList.add('active');
                 pageElement.setAttribute('aria-hidden', 'false');
@@ -247,12 +243,15 @@
                 // Update tab buttons
                 this.updateTabButtons(pageId);
                 
-                // Render charts for this page if data is available
-                if (window.PageRenderers && window.PageRenderers.currentData) {
-                    setTimeout(function() {
+                // Force chart resize after page becomes visible
+                setTimeout(function() {
+                    TabManager.resizePageCharts(pageElement);
+                    
+                    // Render charts for this page if data is available
+                    if (window.PageRenderers && window.PageRenderers.currentData) {
                         window.PageRenderers.renderPageCharts(pageId, window.PageRenderers.currentData);
-                    }, 50);
-                }
+                    }
+                }, 100);
                 
                 // Trigger custom show event for page-specific logic
                 var showEvent = document.createEvent('CustomEvent');
@@ -269,12 +268,6 @@
             this.pages.forEach(function(pageId) {
                 var pageElement = document.getElementById('page-' + pageId);
                 if (pageElement) {
-                    // Clean up charts on the page being hidden
-                    if (pageElement.style.display !== 'none') {
-                        self.cleanupPageCharts(pageElement);
-                    }
-                    
-                    pageElement.style.display = 'none';
                     pageElement.classList.add('page-hidden');
                     pageElement.classList.remove('active');
                     pageElement.setAttribute('aria-hidden', 'true');
@@ -291,21 +284,7 @@
                 var pageElement = document.getElementById('page-' + pageId);
                 if (!pageElement) return;
                 
-                var canvases = pageElement.querySelectorAll('canvas');
-                canvases.forEach(function(canvas) {
-                    try {
-                        var chart = canvas.chart;
-                        if (chart && chart.resize) {
-                            // Resize chart to fit container
-                            chart.resize();
-                            
-                            // Force update
-                            chart.update('none'); // No animation for performance
-                        }
-                    } catch (error) {
-                        console.warn('Chart refresh error:', error);
-                    }
-                });
+                self.resizePageCharts(pageElement);
                 
                 // Trigger chart refresh event for any custom handling
                 var chartRefreshEvent = document.createEvent('CustomEvent');
@@ -313,6 +292,30 @@
                 window.dispatchEvent(chartRefreshEvent);
                 
             }, 50);
+        },
+        
+        // Force resize all charts on a page
+        resizePageCharts: function(pageElement) {
+            var canvases = pageElement.querySelectorAll('canvas');
+            canvases.forEach(function(canvas) {
+                try {
+                    // Force proper canvas sizing
+                    if (window.ChartFactory && window.ChartFactory.ensureCanvasSize) {
+                        window.ChartFactory.ensureCanvasSize(canvas);
+                    }
+                    
+                    var chart = canvas.chart;
+                    if (chart && chart.resize) {
+                        // Resize chart to fit container
+                        chart.resize();
+                        
+                        // Force update
+                        chart.update('none'); // No animation for performance
+                    }
+                } catch (error) {
+                    console.warn('Chart resize error:', error);
+                }
+            });
         },
         
         // Trigger page change event
@@ -357,9 +360,9 @@
                 if (!existingPage) {
                     var pageElement = document.createElement('div');
                     pageElement.id = 'page-' + pageId;
-                    pageElement.className = 'page-content';
+                    pageElement.className = 'page-content page-hidden';
                     pageElement.setAttribute('data-page', pageId);
-                    pageElement.style.display = 'none';
+                    pageElement.setAttribute('aria-hidden', 'true');
                     
                     // Add loading placeholder
                     pageElement.innerHTML = 

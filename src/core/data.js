@@ -286,6 +286,69 @@
             if (!structures) return {};
             // Пока без изменений, позже можно добавить фильтрацию по подразделениям
             return structures;
+        },
+        
+        // Получить данные для конкретного графика с учётом зума
+        getFilteredForChart: function(chartId) {
+            var baseData = this.getFiltered();
+            var zoom = window.DashboardState ? window.DashboardState.getZoom(chartId) : null;
+            
+            if (!zoom || !baseData.revenue) return baseData.revenue;
+            
+            return this._applyZoomWindow(baseData.revenue, zoom);
+        },
+        
+        // Применить окно зума к данным
+        _applyZoomWindow: function(series, zoom) {
+            if (!series || !series.dates) return series;
+            
+            var start = Math.max(0, zoom.start);
+            var end = Math.min(series.dates.length - 1, zoom.end);
+            
+            function cut(arr) {
+                return (arr || []).slice(start, end + 1);
+            }
+            
+            return {
+                dates: cut(series.dates),
+                fact: cut(series.fact),
+                plan: cut(series.plan),
+                prevYear: cut(series.prevYear),
+                forecast: cut(series.forecast)
+            };
+        },
+        
+        // Получить размеры данных для каскадной фильтрации
+        getDimensions: function(companyId) {
+            // Возвращаем статичные данные для демо
+            var allDimensions = {
+                divisions: [
+                    { value: 'all', text: 'Все обособки' },
+                    { value: 'center', text: 'Центр' },
+                    { value: 'south', text: 'Юг' },
+                    { value: 'north', text: 'Север' },
+                    { value: 'east', text: 'Восток' }
+                ],
+                managers: [
+                    { value: 'all', text: 'Все менеджеры' },
+                    { value: 'ivanov', text: 'Иванов И.И.' },
+                    { value: 'sidorov', text: 'Сидоров С.С.' },
+                    { value: 'kozlov', text: 'Козлов К.К.' }
+                ],
+                counterparties: [
+                    { value: 'all', text: 'Все контрагенты' },
+                    { value: 'client1', text: 'Клиент А' },
+                    { value: 'client2', text: 'Клиент Б' },
+                    { value: 'client3', text: 'Клиент В' }
+                ]
+            };
+            
+            // В реальном приложении здесь была бы фильтрация по компании
+            if (companyId === 'all') {
+                return allDimensions;
+            }
+            
+            return allDimensions;
         }
     };
     

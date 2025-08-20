@@ -21,6 +21,9 @@
             this.bindRealtimeControls();
             this.bindPresetButtons();
             this.bindFilterChangeHandler();
+            this.bindZoomControls();
+            this.bindComparisonControls();
+            this.bindCascadingFilters();
             
             // Initialize SelectLite
             if (window.SelectLite) {
@@ -546,6 +549,169 @@
                     });
                     activeBtn.classList.add('active');
                 }
+            }
+        },
+        
+        // Bind zoom controls for charts
+        bindZoomControls: function() {
+            var self = this;
+            
+            document.addEventListener('click', function(event) {
+                if (event.target.classList.contains('zoom-btn')) {
+                    var chartId = event.target.closest('[data-chart-id]').getAttribute('data-chart-id');
+                    var zoomType = '';
+                    
+                    if (event.target.classList.contains('zoom-in')) zoomType = 'in';
+                    else if (event.target.classList.contains('zoom-out')) zoomType = 'out';
+                    else if (event.target.classList.contains('zoom-reset')) zoomType = 'reset';
+                    
+                    if (chartId && zoomType) {
+                        self.handleZoomAction(chartId, zoomType);
+                    }
+                }
+            });
+        },
+        
+        // Handle zoom actions
+        handleZoomAction: function(chartId, action) {
+            if (!window.ChartFactory || !window.DataManager) return;
+            
+            var series = window.DataManager.getFilteredForChart(chartId);
+            if (!series || !series.dates) return;
+            
+            if (action === 'in') {
+                window.ChartFactory.zoomIn(chartId, series);
+            } else if (action === 'out') {
+                window.ChartFactory.zoomOut(chartId, series);
+            } else if (action === 'reset') {
+                window.ChartFactory.zoomReset(chartId);
+            }
+            
+            // Refresh chart with new zoom
+            this.refreshChart(chartId);
+        },
+        
+        // Refresh specific chart
+        refreshChart: function(chartId) {
+            if (window.PageRenderers && window.DataManager) {
+                var series = window.DataManager.getFilteredForChart(chartId);
+                var compareMode = window.DashboardState ? window.DashboardState.getFilter('compare') : 'none';
+                
+                if (window.ChartFactory) {
+                    var canvas = document.getElementById(chartId);
+                    if (canvas) {
+                        // Clear existing chart
+                        var existingChart = window.Chart.getChart(chartId);
+                        if (existingChart) existingChart.destroy();
+                        
+                        // Create new chart with updated data
+                        window.ChartFactory.createLineChart(chartId, series);
+                    }
+                }
+            }
+        },
+        
+        // Bind comparison controls
+        bindComparisonControls: function() {
+            var self = this;
+            
+            document.addEventListener('click', function(event) {
+                if (event.target.classList.contains('comp-btn')) {
+                    var chartId = event.target.closest('[data-chart-id]').getAttribute('data-chart-id');
+                    var mode = event.target.getAttribute('data-mode');
+                    
+                    if (chartId && mode) {
+                        self.handleComparisonChange(chartId, mode, event.target);
+                    }
+                }
+            });
+        },
+        
+        // Handle comparison mode changes
+        handleComparisonChange: function(chartId, mode, button) {
+            // Update button states
+            var controls = button.closest('.comparison-controls');
+            if (controls) {
+                var buttons = controls.querySelectorAll('.comp-btn');
+                buttons.forEach(function(btn) {
+                    btn.classList.remove('active');
+                });
+                button.classList.add('active');
+            }
+            
+            // Update global comparison mode
+            if (window.DashboardState) {
+                window.DashboardState.setFilter('compare', mode);
+            }
+            
+            // Refresh specific chart
+            this.refreshChart(chartId);
+        },
+        
+        // Bind cascading filter functionality
+        bindCascadingFilters: function() {
+            var self = this;
+            
+            // Listen for company changes to update subordinate filters
+            window.addEventListener('filtersChanged', function(event) {
+                if (event.detail && event.detail.key === 'companyId') {
+                    self.handleCompanyFilter(event.detail.value);
+                }
+            });
+        },
+        
+        // Handle company filter changes and cascade to other filters
+        handleCompanyFilter: function(companyId) {
+            if (!window.DataManager || !window.SelectLite) return;
+            
+            var dims = window.DataManager.getDimensions(companyId);
+            
+            // Update division select
+            this.updateSelectOptions('divisionId', dims.divisions);
+            
+            // Update manager select  
+            this.updateSelectOptions('managerId', dims.managers);
+            
+            // Update counterparty select
+            this.updateSelectOptions('counterpartyId', dims.counterparties);
+            
+            // Reset dependent filters to 'all'
+            if (window.DashboardState) {
+                window.DashboardState.setFilter('divisionId', 'all');
+                window.DashboardState.setFilter('managerId', 'all');
+                window.DashboardState.setFilter('counterpartyId', 'all');
+            }
+        },
+        
+        // Update select options dynamically
+        updateSelectOptions: function(selectId, options) {
+            var select = document.querySelector('.select[data-select-id="' + selectId + '"]');
+            if (!select) return;
+            
+            var menu = select.querySelector('.sel-menu');
+            if (!menu) return;
+            
+            // Clear existing options
+            menu.innerHTML = '';
+            
+            // Add new options
+            options.forEach(function(option) {
+                var li = document.createElement('li');
+                li.className = 'sel-item';
+                li.setAttribute('data-value', option.value);
+                li.textContent = option.text;
+                menu.appendChild(li);
+            });
+            
+            // Update button text to first option (usually "All")
+            var button = select.querySelector('.sel-btn');
+            if (button && options[0]) {
+                button.innerHTML = options[0].text + '<span class="sel-arrow">▾</span>';
+            }
+            
+            // Re-initialize SelectLite for this select
+            if (window.SelectLite) {
+                window.SelectLite.initialize(select);
             }
         }
     };

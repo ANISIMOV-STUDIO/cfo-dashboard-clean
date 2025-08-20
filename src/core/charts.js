@@ -24,13 +24,13 @@
         readability: {
             // Font settings
             fontSize: {
-                axis: 16,
+                axis: 13,
                 tooltip: {
-                    title: 16,
-                    body: 15
+                    title: 13,
+                    body: 13
                 },
-                legend: 14,
-                title: 18
+                legend: 13,
+                title: 14
             },
             fontColor: {
                 primary: '#374151',
@@ -317,7 +317,7 @@
             
             elements: {
                 point: { radius: 2, hitRadius: 6 },
-                line: { tension: 0.25, borderWidth: 2 }
+                line: { tension: 0.25, borderWidth: 3 }
             },
             
             scales: {
@@ -327,8 +327,9 @@
                         drawOnChartArea: false
                     },
                     ticks: {
-                        fontSize: 16,        // readability.fontSize.axis
-                        fontColor: '#374151' // readability.fontColor.primary
+                        fontSize: 13,        // readability.fontSize.axis
+                        fontColor: '#374151', // readability.fontColor.primary
+                        maxTicksLimit: 7
                     }
                 }],
                 yAxes: [{
@@ -338,11 +339,11 @@
                         drawBorder: false
                     },
                     ticks: {
-                        fontSize: 16,        // readability.fontSize.axis
+                        fontSize: 13,        // readability.fontSize.axis
                         fontColor: '#374151', // readability.fontColor.primary
                         maxTicksLimit: 6,
                         callback: function(value) {
-                            return window.formatMoney ? window.formatMoney(value, 'RUB', 0) : value;
+                            return window.Utils && window.Utils.formatShort ? window.Utils.formatShort(value) : value;
                         }
                     }
                 }]
@@ -574,6 +575,26 @@
         // Ensure proper canvas sizing for HiDPI
         ensureCanvasSize: function(canvas) {
             var container = canvas.parentElement;
+            
+            // Force layout recalculation for hidden elements
+            if (container.offsetWidth === 0) {
+                // Element might be hidden, try to get computed styles
+                var computedStyle = window.getComputedStyle(container);
+                var width = parseInt(computedStyle.width) || 400;
+                var height = parseInt(computedStyle.height) || 300;
+                
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+                
+                var dpr = window.devicePixelRatio || 1;
+                canvas.width = width * dpr;
+                canvas.height = height * dpr;
+                
+                var ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
+                return;
+            }
+            
             var containerWidth = container.clientWidth || 400;
             var containerHeight = container.clientHeight || 300;
             
@@ -974,8 +995,52 @@
                     self.updateChartsForComparison(event.detail.value);
                 }
             });
+        },
+        
+        // Zoom functionality implementation
+        zoomStep: 0.2,
+        
+        zoomIn: function(chartId, series) {
+            var len = (series.dates || []).length;
+            var z = window.DashboardState.getZoom(chartId) || { start: 0, end: len - 1 };
+            var span = Math.max(3, Math.floor((z.end - z.start + 1) * (1 - this.zoomStep)));
+            var center = Math.floor((z.start + z.end) / 2);
+            var half = Math.floor(span / 2);
+            var ns = Math.max(0, center - half);
+            var ne = Math.min(len - 1, ns + span - 1);
+            
+            if (window.DashboardState) {
+                window.DashboardState.setZoom(chartId, ns, ne);
+            }
+        },
+        
+        zoomOut: function(chartId, series) {
+            var len = (series.dates || []).length;
+            var z = window.DashboardState.getZoom(chartId) || { start: 0, end: len - 1 };
+            var span = Math.min(len, Math.floor((z.end - z.start + 1) * (1 + this.zoomStep)));
+            var center = Math.floor((z.start + z.end) / 2);
+            var half = Math.floor(span / 2);
+            var ns = Math.max(0, center - half);
+            var ne = Math.min(len - 1, ns + span - 1);
+            
+            if (window.DashboardState) {
+                window.DashboardState.setZoom(chartId, ns, ne);
+            }
+        },
+        
+        zoomReset: function(chartId) {
+            if (window.DashboardState) {
+                window.DashboardState.clearZoom(chartId);
+            }
         }
     };
+    
+    // Listen for filter changes to reset zoom
+    window.addEventListener('filtersChanged', function(event) {
+        if (event.detail && event.detail.key === 'periodPreset' && window.DashboardState) {
+            window.DashboardState.zoom = {};
+        }
+    });
     
     // Global helper function that was missing
     window.ensureHiDPI = ChartFactory.ensureCanvasSize;
