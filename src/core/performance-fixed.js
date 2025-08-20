@@ -22,6 +22,7 @@
         
         // Initialize performance optimization
         initialize: function() {
+            this.setupChartDefaults();
             this.detectDeviceType();
             this.setupLazyLoading();
             this.optimizeChartRendering();
@@ -29,6 +30,26 @@
             this.optimizeDataLoading();
             this.setupMobileAdaptations();
             this.addPerformanceMonitoring();
+        },
+        
+        // Setup safe Chart.js defaults
+        setupChartDefaults: function() {
+            if (window.Chart && window.Chart.defaults) {
+                try {
+                    Chart.defaults.global.defaultFontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+                    Chart.defaults.global.defaultFontSize = 12;
+                    Chart.defaults.global.defaultFontColor = '#374151';
+                    Chart.defaults.global.defaultFontStyle = 'normal';
+                    
+                    // Disable problematic features
+                    Chart.defaults.global.hover.intersect = false;
+                    Chart.defaults.global.tooltips.intersect = false;
+                    
+                    console.log('Chart.js defaults configured safely');
+                } catch (error) {
+                    console.warn('Failed to set Chart.js defaults:', error);
+                }
+            }
         },
         
         // Detect device type and capabilities
@@ -203,14 +224,28 @@
                 if (Chart.prototype) {
                     var originalUpdate = Chart.prototype.update;
                     Chart.prototype.update = function(mode, duration) {
+                        // Safety check: ensure chart is still valid
+                        if (!this || !this.chart || !this.chart.canvas) {
+                            console.warn('Attempted to update invalid chart');
+                            return;
+                        }
+                        
                         // Batch updates using requestAnimationFrame
                         if (!this._updateScheduled) {
                             this._updateScheduled = true;
                             var chart = this;
                             
                             requestAnimationFrame(function() {
-                                originalUpdate.call(chart, mode, duration);
-                                chart._updateScheduled = false;
+                                try {
+                                    // Double-check chart is still valid before update
+                                    if (chart && chart.chart && chart.chart.canvas) {
+                                        originalUpdate.call(chart, mode, duration);
+                                    }
+                                } catch (error) {
+                                    console.warn('Chart update failed:', error);
+                                } finally {
+                                    chart._updateScheduled = false;
+                                }
                             });
                         }
                     };

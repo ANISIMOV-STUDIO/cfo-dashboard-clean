@@ -10,15 +10,21 @@
         // Current page state
         currentPage: 'overview',
         
-        // Filter state
+        // Filter state - расширенная модель
         filters: {
-            company: 'progress',
-            periodPreset: 'month', // month, quarter, year, custom
-            dateFrom: null,
+            periodPreset: 'month',    // 'month'|'quarter'|'year'
+            dateFrom: null, 
             dateTo: null,
-            showForecast: false,
-            percentageMode: false // абсолют vs процент
+            companyId: 'all',         // все|progress|другие
+            divisionId: 'all',        // обособка/филиал
+            managerId: 'all',         // менеджер
+            counterpartyId: 'all',    // контрагент
+            mode: 'absolute',         // 'absolute'|'percentage'
+            compare: 'prevYear'       // 'none'|'prevYear'|'plan'
         },
+        
+        // Zoom state - per-chart zoom windows
+        zoom: {},
         
         // UI state
         ui: {
@@ -218,15 +224,62 @@
             return Object.assign({}, this.performance);
         },
         
+        // Filter management - новые методы
+        setFilter: function(key, value) {
+            if (this.filters.hasOwnProperty(key)) {
+                this.filters[key] = value;
+                this.persistState();
+                this.triggerEvent('filtersChanged', { key: key, value: value, filters: this.filters });
+            }
+        },
+        
+        getFilter: function(key) {
+            return this.filters[key];
+        },
+        
+        applyPeriodPreset: function(preset) {
+            this.filters.periodPreset = preset;
+            // сбрасываем зум при смене периода
+            this.zoom = {};
+            this.persistState();
+            this.triggerEvent('filtersChanged', { key: 'periodPreset', value: preset, filters: this.filters });
+        },
+        
+        // Zoom management
+        setZoom: function(chartId, start, end) {
+            this.zoom[chartId] = { start: start, end: end };
+            this.triggerEvent('zoomChanged', { chartId: chartId, start: start, end: end });
+        },
+        
+        clearZoom: function(chartId) {
+            if (this.zoom[chartId]) {
+                delete this.zoom[chartId];
+                this.triggerEvent('zoomChanged', { chartId: chartId });
+            }
+        },
+        
+        getZoom: function(chartId) {
+            return this.zoom[chartId] || null;
+        },
+        
+        // Event system
+        triggerEvent: function(eventName, data) {
+            // Dispatch custom event
+            var event;
+            if (typeof CustomEvent === 'function') {
+                event = new CustomEvent(eventName, { detail: data });
+            } else {
+                // ES5 fallback
+                event = document.createEvent('CustomEvent');
+                event.initCustomEvent(eventName, true, true, data);
+            }
+            window.dispatchEvent(event);
+        },
+        
         // Share mode management (для отображения в абсолютах vs процентах)
         toggleShareMode: function() {
-            this.filters.percentageMode = !this.filters.percentageMode;
-            this.persistState();
-            
-            // Apply share mode globally
-            if (window.applyShareMode) {
-                window.applyShareMode(this.filters.percentageMode ? 'percentage' : 'absolute');
-            }
+            var newMode = this.filters.mode === 'absolute' ? 'percentage' : 'absolute';
+            this.setFilter('mode', newMode);
         }
     };
     

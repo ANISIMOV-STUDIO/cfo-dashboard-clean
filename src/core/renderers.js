@@ -873,6 +873,20 @@
                 return null;
             }
             
+            // Ensure canvas context is available
+            var ctx = canvas.getContext('2d');
+            if (!ctx) {
+                console.warn('Canvas context not available:', canvasId);
+                return null;
+            }
+            
+            // Ensure canvas has dimensions
+            if (canvas.clientWidth === 0 || canvas.clientHeight === 0) {
+                // Set default dimensions if not set
+                canvas.style.width = '400px';
+                canvas.style.height = '300px';
+            }
+            
             // Check if there's already a Chart.js instance on this canvas
             var existingChart = canvas.chart;
             if (existingChart && existingChart.destroy) {
@@ -885,6 +899,13 @@
             }
             
             try {
+                // Set safe defaults for Chart.js global config
+                if (window.Chart && window.Chart.defaults) {
+                    Chart.defaults.global.defaultFontFamily = 'system-ui, -apple-system, sans-serif';
+                    Chart.defaults.global.defaultFontSize = 12;
+                    Chart.defaults.global.defaultFontColor = '#374151';
+                }
+                
                 var chart = createFunction();
                 if (chart) {
                     this.createdCharts[canvasId] = chart;

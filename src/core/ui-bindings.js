@@ -19,6 +19,8 @@
             this.bindRefreshButton();
             this.bindResetButton();
             this.bindRealtimeControls();
+            this.bindPresetButtons();
+            this.bindFilterChangeHandler();
             
             // Initialize SelectLite
             if (window.SelectLite) {
@@ -434,6 +436,114 @@
                     activeToggle.classList.add('active');
                 }
             }
+        },
+        
+        // Bind preset buttons for period selection
+        bindPresetButtons: function() {
+            var self = this;
+            
+            // Listen for preset button clicks
+            document.addEventListener('click', function(event) {
+                if (event.target.classList.contains('preset-btn')) {
+                    var preset = event.target.getAttribute('data-preset');
+                    if (preset && window.DashboardState) {
+                        self.handlePresetSelection(preset, event.target);
+                    }
+                }
+            });
+        },
+        
+        // Handle preset selection
+        handlePresetSelection: function(preset, button) {
+            try {
+                // Update active state
+                var presetBtns = document.querySelectorAll('.preset-btn');
+                presetBtns.forEach(function(btn) {
+                    btn.classList.remove('active');
+                });
+                button.classList.add('active');
+                
+                // Apply preset through DashboardState
+                if (window.DashboardState && window.DashboardState.applyPeriodPreset) {
+                    window.DashboardState.applyPeriodPreset(preset);
+                }
+                
+                // Trigger data refresh
+                this.refreshDashboardData();
+                
+            } catch (error) {
+                console.error('Error applying preset ' + preset + ':', error);
+            }
+        },
+        
+        // Bind filter change handler for all custom selects
+        bindFilterChangeHandler: function() {
+            var self = this;
+            
+            // Listen for custom select change events
+            document.addEventListener('selectchange', function(event) {
+                if (event.selectId && event.value) {
+                    self.handleFilterChange(event.selectId, event.value);
+                }
+            });
+            
+            // Listen for state changes to update UI
+            window.addEventListener('filtersChanged', function(event) {
+                if (event.detail) {
+                    self.updateFiltersUI(event.detail.filters);
+                }
+            });
+        },
+        
+        // Handle filter changes from selects
+        handleFilterChange: function(filterId, value) {
+            try {
+                // Update dashboard state
+                if (window.DashboardState) {
+                    window.DashboardState.setFilter(filterId, value);
+                }
+                
+                // Trigger data refresh
+                this.refreshDashboardData();
+                
+            } catch (error) {
+                console.error('Error handling filter change:', error);
+            }
+        },
+        
+        // Update filters UI to match state
+        updateFiltersUI: function(filters) {
+            if (!filters) return;
+            
+            // Update all select controls to match state
+            var selectElements = document.querySelectorAll('.select[data-select-id]');
+            selectElements.forEach(function(selectEl) {
+                var selectId = selectEl.getAttribute('data-select-id');
+                var currentValue = filters[selectId];
+                
+                if (currentValue) {
+                    // Find the corresponding option and update button text
+                    var option = selectEl.querySelector('.sel-item[data-value="' + currentValue + '"]');
+                    var button = selectEl.querySelector('.sel-btn');
+                    
+                    if (option && button) {
+                        var text = option.textContent || option.innerText;
+                        button.innerHTML = text + '<span class="sel-arrow">▾</span>';
+                    }
+                }
+            });
+            
+            // Update preset buttons
+            if (filters.periodPreset) {
+                var activeBtn = document.querySelector('.preset-btn[data-preset="' + filters.periodPreset + '"]');
+                if (activeBtn) {
+                    var presetBtns = document.querySelectorAll('.preset-btn');
+                    presetBtns.forEach(function(btn) {
+                        btn.classList.remove('active');
+                    });
+                    activeBtn.classList.add('active');
+                }
+            }
         }
     };
     
@@ -505,6 +615,11 @@ window.SelectLite = (function() {
                     var filter = {};
                     filter[selectId] = value;
                     window.DashboardState.setFilters(filter);
+                }
+                
+                // Обновляем состояние через DashboardState
+                if (selectId && window.DashboardState) {
+                    window.DashboardState.setFilter(selectId, value);
                 }
                 
                 // Dispatch custom event

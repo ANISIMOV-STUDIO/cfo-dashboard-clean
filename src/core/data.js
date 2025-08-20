@@ -89,6 +89,7 @@
     var DataManager = {
         currentData: null,
         lastUpdateTime: null,
+        _rawData: null, // для фильтрации
         
         loadData: function(jsonData) {
             try {
@@ -96,6 +97,9 @@
                 
                 // Validate data structure
                 var validation = DataValidator.validateSchema(data);
+                
+                // Сохраняем исходные данные для фильтрации
+                this._rawData = data;
                 
                 // Transform data
                 this.currentData = DataValidator.transformData(data);
@@ -161,6 +165,127 @@
         
         getAlerts: function() {
             return this.currentData ? this.currentData.alerts || [] : [];
+        },
+        
+        // Новый метод фильтрации данных
+        getFiltered: function() {
+            if (!this._rawData) {
+                return this.currentData;
+            }
+            
+            var filters = window.DashboardState ? window.DashboardState.getState().filters : {};
+            return this._applyFilters(this._rawData, filters);
+        },
+        
+        // Применение фильтров к исходным данным
+        _applyFilters: function(rawData, filters) {
+            var filtered = this._getFilteredData(rawData, filters);
+            var preset = filters.periodPreset || 'month';
+            
+            return {
+                revenue: this._sliceByPreset(filtered.revenue, preset),
+                margins: this._sliceByPreset(filtered.margins, preset),
+                cashFlow: this._sliceCashFlowByPreset(filtered.cashFlow, preset),
+                meta: rawData.meta,
+                kpi: this._calculateKPI(filtered),
+                structures: this._filterStructures(rawData.structures, filters),
+                alerts: rawData.alerts || []
+            };
+        },
+        
+        // Основная функция фильтрации
+        _getFilteredData: function(rawData, filters) {
+            var timeSeries = rawData.timeSeries || {};
+            
+            // Фильтрация временных рядов
+            var revenue = this._buildTimeSeries(timeSeries.revenue, filters);
+            var margins = this._buildTimeSeries(timeSeries.margins, filters); 
+            var cashFlow = this._buildCashFlowSeries(timeSeries.cashFlow, filters);
+            
+            return {
+                revenue: revenue,
+                margins: margins,
+                cashFlow: cashFlow
+            };
+        },
+        
+        // Построение временного ряда с учётом фильтров
+        _buildTimeSeries: function(series, filters) {
+            if (!series || !series.dates) return { dates: [], fact: [], plan: [], prevYear: [], forecast: [] };
+            
+            // Пока используем исходные данные (позже можно добавить реальную фильтрацию по компаниям/подразделениям)
+            return {
+                dates: series.dates || [],
+                fact: series.fact || [],
+                plan: series.plan || [],
+                prevYear: series.prevYear || [],
+                forecast: series.forecast || []
+            };
+        },
+        
+        // Построение cash flow с учётом фильтров  
+        _buildCashFlowSeries: function(cashFlow, filters) {
+            if (!cashFlow) return {};
+            return cashFlow; // пока без изменений
+        },
+        
+        // Срезка по периодным пресетам
+        _sliceByPreset: function(series, preset) {
+            if (!series || !series.dates) return series;
+            
+            var keep = preset === 'year' ? 12 : preset === 'quarter' ? 3 : 1;
+            var n = series.dates.length;
+            var from = Math.max(0, n - keep);
+            
+            function cut(arr) {
+                return (arr || []).slice(from);
+            }
+            
+            return {
+                dates: cut(series.dates),
+                fact: cut(series.fact),
+                plan: cut(series.plan), 
+                prevYear: cut(series.prevYear),
+                forecast: cut(series.forecast)
+            };
+        },
+        
+        // Срезка cash flow по пресету
+        _sliceCashFlowByPreset: function(cashFlow, preset) {
+            if (!cashFlow || !cashFlow.monthly) return cashFlow;
+            
+            var keep = preset === 'year' ? 12 : preset === 'quarter' ? 3 : 1;
+            var monthly = cashFlow.monthly;
+            var n = (monthly.dates || []).length;
+            var from = Math.max(0, n - keep);
+            
+            function cut(arr) {
+                return (arr || []).slice(from);
+            }
+            
+            return Object.assign({}, cashFlow, {
+                monthly: {
+                    dates: cut(monthly.dates),
+                    ocf: cut(monthly.ocf),
+                    icf: cut(monthly.icf),
+                    fcf: cut(monthly.fcf)
+                }
+            });
+        },
+        
+        // Пересчёт KPI для фильтрованных данных
+        _calculateKPI: function(filtered) {
+            if (!this._rawData || !this._rawData.kpi) return {};
+            
+            // Пока возвращаем исходные KPI, позже можно добавить пересчёт
+            return this._rawData.kpi;
+        },
+        
+        // Фильтрация структурных данных
+        _filterStructures: function(structures, filters) {
+            if (!structures) return {};
+            // Пока без изменений, позже можно добавить фильтрацию по подразделениям
+            return structures;
         }
     };
     

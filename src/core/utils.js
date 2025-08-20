@@ -12,6 +12,9 @@
             currency = currency || 'RUB';
             precision = precision !== undefined ? precision : 0;
             
+            // Convert to number and handle invalid values
+            amount = parseFloat(amount);
+            if (isNaN(amount)) return '—';
             if (!amount && amount !== 0) return '—';
             
             var formatted;

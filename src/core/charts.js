@@ -38,11 +38,13 @@
             tooltips: {
                 mode: 'index',
                 intersect: false,
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                titleFontSize: 12,
-                bodyFontSize: 11,
-                cornerRadius: 6,
+                backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                titleFontSize: 14,
+                bodyFontSize: 13,
+                cornerRadius: 8,
                 displayColors: true,
+                xPadding: 12,
+                yPadding: 10,
                 callbacks: {
                     title: function(tooltipItem, data) {
                         return tooltipItem[0].label || '';
@@ -67,8 +69,8 @@
                         drawOnChartArea: false
                     },
                     ticks: {
-                        fontSize: 11,
-                        fontColor: '#6B7280'
+                        fontSize: 13,
+                        fontColor: '#374151'
                     }
                 }],
                 yAxes: [{
@@ -78,8 +80,8 @@
                         drawBorder: false
                     },
                     ticks: {
-                        fontSize: 11,
-                        fontColor: '#6B7280',
+                        fontSize: 13,
+                        fontColor: '#374151',
                         maxTicksLimit: 6,
                         callback: function(value) {
                             return window.formatMoney ? window.formatMoney(value, 'RUB', 0) : value;
@@ -97,6 +99,12 @@
         createHorizontalBarChart: function(canvasId, data) {
             var canvas = document.getElementById(canvasId);
             if (!canvas) return null;
+            
+            // Validate input data
+            if (!data || typeof data !== 'object') {
+                console.warn('Invalid data provided to createHorizontalBarChart for', canvasId);
+                return null;
+            }
             
             // Ensure canvas has proper size
             this.ensureCanvasSize(canvas);
@@ -121,8 +129,8 @@
                                 color: 'rgba(17,24,39,0.08)'
                             },
                             ticks: {
-                                fontSize: 11,
-                                fontColor: '#6B7280',
+                                fontSize: 13,
+                                fontColor: '#374151',
                                 callback: function(value) {
                                     return window.formatMoney ? window.formatMoney(value, 'RUB', 0) : value;
                                 }
@@ -133,7 +141,8 @@
                                 display: false
                             },
                             ticks: {
-                                fontSize: 11
+                                fontSize: 13,
+                                fontColor: '#374151'
                             }
                         }]
                     }
@@ -148,15 +157,21 @@
             var canvas = document.getElementById(canvasId);
             if (!canvas) return null;
             
+            // Validate input data
+            if (!data || typeof data !== 'object') {
+                console.warn('Invalid data provided to createLineChart for', canvasId);
+                return null;
+            }
+            
             this.ensureCanvasSize(canvas);
             
             var datasets = [];
             
             // Fact data
-            if (data.fact) {
+            if (data.fact && Array.isArray(data.fact)) {
                 datasets.push({
                     label: 'Факт',
-                    data: data.fact,
+                    data: data.fact.filter(function(v) { return v !== null && v !== undefined; }),
                     borderColor: this.colors.fact,
                     backgroundColor: this.colors.fact + '20',
                     borderWidth: 2,
@@ -166,10 +181,10 @@
             }
             
             // Plan data
-            if (data.plan) {
+            if (data.plan && Array.isArray(data.plan)) {
                 datasets.push({
                     label: 'План',
-                    data: data.plan,
+                    data: data.plan.filter(function(v) { return v !== null && v !== undefined; }),
                     borderColor: this.colors.plan,
                     backgroundColor: this.colors.plan + '20',
                     borderWidth: 2,
@@ -180,12 +195,12 @@
             }
             
             // Previous year
-            if (data.prevYear) {
+            if (data.prevYear && Array.isArray(data.prevYear)) {
                 datasets.push({
                     label: 'Прошлый год',
-                    data: data.prevYear,
-                    borderColor: this.colors.secondary,
-                    backgroundColor: this.colors.secondary + '20',
+                    data: data.prevYear.filter(function(v) { return v !== null && v !== undefined; }),
+                    borderColor: this.colors.prevYear,
+                    backgroundColor: this.colors.prevYear + '20',
                     borderWidth: 1,
                     fill: false,
                     tension: 0.1
@@ -214,10 +229,28 @@
                 });
             }
             
+            // Ensure we have valid labels and datasets
+            var labels = data.dates || data.labels || [];
+            if (!Array.isArray(labels)) {
+                labels = [];
+            }
+            
+            // If no datasets were created, create an empty one to prevent errors
+            if (datasets.length === 0) {
+                datasets.push({
+                    label: 'Нет данных',
+                    data: [],
+                    borderColor: this.colors.neutral,
+                    backgroundColor: this.colors.neutral + '20',
+                    borderWidth: 1,
+                    fill: false
+                });
+            }
+            
             var config = {
                 type: 'line',
                 data: {
-                    labels: data.dates || data.labels || [],
+                    labels: labels,
                     datasets: datasets
                 },
                 options: this.mergeOptions(this.defaultOptions, data.options || {})
@@ -278,8 +311,14 @@
             this.ensureCanvasSize(canvas);
             
             // Handle both old format (array) and new format (object)
-            var values = Array.isArray(data) ? data : (data.fact || data.values || data.data || []);
-            var labels = data.dates || data.labels || new Array(values.length).fill('');
+            var values = Array.isArray(data) ? data : (data && (data.fact || data.values || data.data)) || [];
+            var labels = (data && (data.dates || data.labels)) || new Array(values.length).fill('');
+            
+            // Ensure values is an array and filter out invalid values
+            if (!Array.isArray(values)) {
+                values = [];
+            }
+            values = values.filter(function(v) { return v !== null && v !== undefined && !isNaN(v); });
             
             var config = {
                 type: 'line',
@@ -433,6 +472,275 @@
             if (window.chartjs) {
                 delete window.chartjs.zoom;
                 delete window.chartjs.pan;
+            }
+        },
+        
+        // Manual zoom functionality without plugins
+        zoomChart: function(chartInstance, chartId, direction) {
+            if (!chartInstance || !chartInstance.data) return;
+            
+            var zoom = window.DashboardState ? window.DashboardState.getZoom(chartId) : null;
+            var dataLength = chartInstance.data.labels.length;
+            
+            if (!zoom) {
+                // Initialize zoom window
+                zoom = { start: 0, end: dataLength - 1 };
+            }
+            
+            var windowSize = zoom.end - zoom.start + 1;
+            var step = Math.max(1, Math.floor(windowSize * 0.2)); // 20% step
+            
+            if (direction === 'in') {
+                // Zoom in - reduce window size
+                if (windowSize > 3) {
+                    zoom.start = Math.min(zoom.start + step, zoom.end - 2);
+                    zoom.end = Math.max(zoom.end - step, zoom.start + 2);
+                }
+            } else if (direction === 'out') {
+                // Zoom out - increase window size
+                zoom.start = Math.max(0, zoom.start - step);
+                zoom.end = Math.min(dataLength - 1, zoom.end + step);
+            } else if (direction === 'reset') {
+                // Reset zoom
+                zoom = { start: 0, end: dataLength - 1 };
+            }
+            
+            // Apply zoom to chart
+            this.applyZoomToChart(chartInstance, zoom);
+            
+            // Save zoom state
+            if (window.DashboardState) {
+                window.DashboardState.setZoom(chartId, zoom.start, zoom.end);
+            }
+        },
+        
+        // Apply zoom window to chart data
+        applyZoomToChart: function(chartInstance, zoom) {
+            if (!chartInstance || !chartInstance.data) return;
+            
+            var originalData = chartInstance.originalData || {
+                labels: chartInstance.data.labels.slice(),
+                datasets: chartInstance.data.datasets.map(function(dataset) {
+                    return { data: dataset.data.slice(), label: dataset.label };
+                })
+            };
+            
+            // Store original data if not already stored
+            if (!chartInstance.originalData) {
+                chartInstance.originalData = originalData;
+            }
+            
+            // Apply zoom window
+            var start = Math.max(0, zoom.start);
+            var end = Math.min(originalData.labels.length - 1, zoom.end);
+            
+            chartInstance.data.labels = originalData.labels.slice(start, end + 1);
+            chartInstance.data.datasets.forEach(function(dataset, i) {
+                if (originalData.datasets[i]) {
+                    dataset.data = originalData.datasets[i].data.slice(start, end + 1);
+                }
+            });
+            
+            chartInstance.update('none'); // No animation for performance
+        },
+        
+        // Reset chart zoom to original data
+        resetChartZoom: function(chartInstance, chartId) {
+            if (!chartInstance || !chartInstance.originalData) return;
+            
+            chartInstance.data.labels = chartInstance.originalData.labels.slice();
+            chartInstance.data.datasets.forEach(function(dataset, i) {
+                if (chartInstance.originalData.datasets[i]) {
+                    dataset.data = chartInstance.originalData.datasets[i].data.slice();
+                }
+            });
+            
+            chartInstance.update('none');
+            
+            // Clear zoom state
+            if (window.DashboardState) {
+                window.DashboardState.clearZoom(chartId);
+            }
+        },
+        
+        // Get zoom controls HTML
+        getZoomControlsHTML: function(chartId) {
+            return '<div class="zoom-controls" data-chart-id="' + chartId + '">' +
+                   '<button class="zoom-btn zoom-out" title="Уменьшить масштаб">−</button>' +
+                   '<button class="zoom-btn zoom-in" title="Увеличить масштаб">+</button>' +
+                   '<button class="zoom-btn zoom-reset" title="Сбросить масштаб">⟲</button>' +
+                   '</div>';
+        },
+        
+        // Bind zoom controls to chart
+        bindZoomControls: function(chartInstance, chartId) {
+            var self = this;
+            var container = document.querySelector('[data-chart-id="' + chartId + '"]');
+            
+            if (container) {
+                container.addEventListener('click', function(event) {
+                    if (event.target.classList.contains('zoom-btn')) {
+                        var action = '';
+                        if (event.target.classList.contains('zoom-in')) action = 'in';
+                        else if (event.target.classList.contains('zoom-out')) action = 'out';
+                        else if (event.target.classList.contains('zoom-reset')) action = 'reset';
+                        
+                        if (action) {
+                            self.zoomChart(chartInstance, chartId, action);
+                        }
+                    }
+                });
+            }
+        },
+        
+        // Apply comparison mode to chart
+        applyComparisonMode: function(chartInstance, mode, originalData) {
+            if (!chartInstance || !chartInstance.data) return;
+            
+            // Store original data if not stored
+            if (!chartInstance.originalData && originalData) {
+                chartInstance.originalData = originalData;
+            }
+            
+            var baseData = chartInstance.originalData || originalData;
+            if (!baseData) return;
+            
+            // Clear existing datasets
+            chartInstance.data.datasets = [];
+            
+            // Always show fact data
+            if (baseData.fact) {
+                chartInstance.data.datasets.push({
+                    label: 'Факт',
+                    data: baseData.fact,
+                    borderColor: this.colors.fact,
+                    backgroundColor: this.colors.fact + '20',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1
+                });
+            }
+            
+            // Add comparison data based on mode
+            if (mode === 'prevYear' && baseData.prevYear) {
+                chartInstance.data.datasets.push({
+                    label: 'Прошлый год',
+                    data: baseData.prevYear,
+                    borderColor: this.colors.prevYear,
+                    backgroundColor: this.colors.prevYear + '20',
+                    borderWidth: 2,
+                    borderDash: [3, 3],
+                    fill: false,
+                    tension: 0.1
+                });
+            } else if (mode === 'plan' && baseData.plan) {
+                chartInstance.data.datasets.push({
+                    label: 'План',
+                    data: baseData.plan,
+                    borderColor: this.colors.plan,
+                    backgroundColor: this.colors.plan + '20',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    fill: false,
+                    tension: 0.1
+                });
+            }
+            
+            // Add forecast if available
+            if (baseData.forecast) {
+                chartInstance.data.datasets.push({
+                    label: 'Прогноз',
+                    data: baseData.forecast,
+                    borderColor: this.colors.forecast,
+                    backgroundColor: this.colors.forecast + '20',
+                    borderWidth: 2,
+                    borderDash: [2, 2],
+                    fill: false,
+                    tension: 0.1
+                });
+            }
+            
+            chartInstance.update('none');
+        },
+        
+        // Switch between absolute and percentage mode
+        applyDisplayMode: function(chartInstance, mode) {
+            if (!chartInstance || !chartInstance.options.scales) return;
+            
+            var yScale = chartInstance.options.scales.yAxes && chartInstance.options.scales.yAxes[0];
+            if (yScale && yScale.ticks) {
+                if (mode === 'percentage') {
+                    yScale.ticks.callback = function(value) {
+                        return window.formatPercent ? window.formatPercent(value) : value + '%';
+                    };
+                    
+                    // Convert data to percentages if original data exists
+                    if (chartInstance.originalData && chartInstance.originalData.fact) {
+                        var baseValues = chartInstance.originalData.fact;
+                        chartInstance.data.datasets.forEach(function(dataset) {
+                            if (dataset.label === 'Факт') return; // Keep fact as 100%
+                            
+                            dataset.data = dataset.data.map(function(value, i) {
+                                var base = baseValues[i];
+                                return base ? ((value / base) * 100) : 0;
+                            });
+                        });
+                    }
+                } else {
+                    // Absolute mode
+                    yScale.ticks.callback = function(value) {
+                        return window.formatMoney ? window.formatMoney(value, 'RUB', 0) : value;
+                    };
+                    
+                    // Restore original data
+                    if (chartInstance.originalData) {
+                        chartInstance.data.datasets.forEach(function(dataset, i) {
+                            if (chartInstance.originalData.datasets && chartInstance.originalData.datasets[i]) {
+                                dataset.data = chartInstance.originalData.datasets[i].data.slice();
+                            }
+                        });
+                    }
+                }
+                
+                chartInstance.update('none');
+            }
+        },
+        
+        // Get comparison controls HTML
+        getComparisonControlsHTML: function(chartId) {
+            return '<div class="comparison-controls" data-chart-id="' + chartId + '">' +
+                   '<button class="comp-btn comp-none active" data-mode="none" title="Только факт">Факт</button>' +
+                   '<button class="comp-btn comp-prev" data-mode="prevYear" title="Сравнение с прошлым годом">vs Прошлый год</button>' +
+                   '<button class="comp-btn comp-plan" data-mode="plan" title="Сравнение с планом">vs План</button>' +
+                   '</div>';
+        },
+        
+        // Bind comparison controls
+        bindComparisonControls: function(chartInstance, chartId) {
+            var self = this;
+            var container = document.querySelector('[data-chart-id="' + chartId + '"] .comparison-controls');
+            
+            if (container) {
+                container.addEventListener('click', function(event) {
+                    if (event.target.classList.contains('comp-btn')) {
+                        var mode = event.target.getAttribute('data-mode');
+                        
+                        // Update active state
+                        var buttons = container.querySelectorAll('.comp-btn');
+                        buttons.forEach(function(btn) {
+                            btn.classList.remove('active');
+                        });
+                        event.target.classList.add('active');
+                        
+                        // Apply comparison mode
+                        self.applyComparisonMode(chartInstance, mode);
+                        
+                        // Update state
+                        if (window.DashboardState) {
+                            window.DashboardState.setFilter('compare', mode);
+                        }
+                    }
+                });
             }
         }
     };

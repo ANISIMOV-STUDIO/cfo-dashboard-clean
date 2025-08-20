@@ -47,11 +47,32 @@
         <button class="preset-btn" data-preset="year">Год</button>
       </div>
       
-      <div class="select" data-select-id="company">
+      <div class="select" data-select-id="companyId">
         <button class="sel-btn">ООО Прогресс</button>
         <ul class="sel-menu" role="listbox">
           <li class="sel-item" data-value="all">Все компании</li>
           <li class="sel-item" data-value="progress">ООО Прогресс</li>
+        </ul>
+      </div>
+      
+      <div class="select" data-select-id="divisionId">
+        <button class="sel-btn">Все обособки</button>
+        <ul class="sel-menu" role="listbox">
+          <li class="sel-item" data-value="all">Все обособки</li>
+          <li class="sel-item" data-value="center">Центр</li>
+          <li class="sel-item" data-value="south">Юг</li>
+          <li class="sel-item" data-value="north">Север</li>
+          <li class="sel-item" data-value="east">Восток</li>
+        </ul>
+      </div>
+      
+      <div class="select" data-select-id="managerId">
+        <button class="sel-btn">Все менеджеры</button>
+        <ul class="sel-menu" role="listbox">
+          <li class="sel-item" data-value="all">Все менеджеры</li>
+          <li class="sel-item" data-value="ivanov">Иванов И.И.</li>
+          <li class="sel-item" data-value="sidorov">Сидоров С.С.</li>
+          <li class="sel-item" data-value="kozlov">Козлов К.К.</li>
         </ul>
       </div>
       
@@ -63,11 +84,12 @@
         </ul>
       </div>
       
-      <div class="select" data-select-id="comparison">
+      <div class="select" data-select-id="compare">
         <button class="sel-btn">К пред. году</button>
         <ul class="sel-menu" role="listbox">
           <li class="sel-item" data-value="none">Без сравнения</li>
-          <li class="sel-item" data-value="prev-year">К пред. году</li>
+          <li class="sel-item" data-value="prevYear">К пред. году</li>
+          <li class="sel-item" data-value="plan">К плану</li>
         </ul>
       </div>
       
@@ -85,6 +107,18 @@
             <div class="card-header">
               <div class="card-title">Динамика выручки, млн ₽</div>
               <div class="card-subtle">Факт · План · ПГ · Прогноз</div>
+              <div class="chart-controls">
+                <div class="comparison-controls" data-chart-id="revenue-trend-chart">
+                  <button class="comp-btn comp-none active" data-mode="none" title="Только факт">Факт</button>
+                  <button class="comp-btn comp-prev" data-mode="prevYear" title="Сравнение с прошлым годом">vs ПГ</button>
+                  <button class="comp-btn comp-plan" data-mode="plan" title="Сравнение с планом">vs План</button>
+                </div>
+                <div class="zoom-controls" data-chart-id="revenue-trend-chart">
+                  <button class="zoom-btn zoom-out" title="Уменьшить масштаб">−</button>
+                  <button class="zoom-btn zoom-in" title="Увеличить масштаб">+</button>
+                  <button class="zoom-btn zoom-reset" title="Сбросить масштаб">⟲</button>
+                </div>
+              </div>
             </div>
             <div class="chart-body">
               <canvas id="revenue-trend-chart" data-lazy="chart"></canvas>
@@ -94,6 +128,18 @@
             <div class="card-header">
               <div class="card-title">Маржинальность, %</div>
               <div class="card-subtle">Валовая · EBITDA · Чистая</div>
+              <div class="chart-controls">
+                <div class="comparison-controls" data-chart-id="margins-trend-chart">
+                  <button class="comp-btn comp-none active" data-mode="none" title="Только факт">Факт</button>
+                  <button class="comp-btn comp-prev" data-mode="prevYear" title="Сравнение с прошлым годом">vs ПГ</button>
+                  <button class="comp-btn comp-plan" data-mode="plan" title="Сравнение с планом">vs План</button>
+                </div>
+                <div class="zoom-controls" data-chart-id="margins-trend-chart">
+                  <button class="zoom-btn zoom-out" title="Уменьшить масштаб">−</button>
+                  <button class="zoom-btn zoom-in" title="Увеличить масштаб">+</button>
+                  <button class="zoom-btn zoom-reset" title="Сбросить масштаб">⟲</button>
+                </div>
+              </div>
             </div>
             <div class="chart-body">
               <canvas id="margins-trend-chart" data-lazy="chart"></canvas>
@@ -200,6 +246,18 @@
             <div class="card-header">
               <div class="card-title">DSO (тренд)</div>
               <div class="card-subtle">Линия</div>
+              <div class="chart-controls">
+                <div class="comparison-controls" data-chart-id="dso-trends-chart">
+                  <button class="comp-btn comp-none active" data-mode="none" title="Только факт">Факт</button>
+                  <button class="comp-btn comp-prev" data-mode="prevYear" title="Сравнение с прошлым годом">vs ПГ</button>
+                  <button class="comp-btn comp-plan" data-mode="plan" title="Сравнение с планом">vs План</button>
+                </div>
+                <div class="zoom-controls" data-chart-id="dso-trends-chart">
+                  <button class="zoom-btn zoom-out" title="Уменьшить масштаб">−</button>
+                  <button class="zoom-btn zoom-in" title="Увеличить масштаб">+</button>
+                  <button class="zoom-btn zoom-reset" title="Сбросить масштаб">⟲</button>
+                </div>
+              </div>
             </div>
             <div class="chart-body">
               <canvas id="dso-trends-chart" data-lazy="chart"></canvas>
