@@ -1,9 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python:*)",
-      "Bash(touch:*)",
-      "Bash(start http://localhost:8000)"
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
