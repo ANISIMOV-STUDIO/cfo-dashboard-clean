@@ -19,7 +19,17 @@
     body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
       color:var(--text); background:linear-gradient(180deg,#f7f8fa 0%,#eef1f5 100%); -webkit-font-smoothing:antialiased; }
     .dashboard { min-width:1360px; max-width:1600px; margin:24px auto; padding:0 24px 48px; }
-    .dashboard-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .dashboard-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:24px; }
+    .header-left { flex-shrink: 0; }
+    .kpi-cards { display: flex; gap: 16px; flex: 1; justify-content: center; }
+    .kpi-card { background: var(--panel); border-radius: var(--radius); padding: 16px 20px; min-width: 140px; box-shadow: var(--shadow); transition: transform 0.2s ease; }
+    .kpi-card:hover { transform: translateY(-2px); }
+    .kpi-value { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .kpi-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .kpi-change { font-size: 11px; font-weight: 600; }
+    .kpi-change.positive { color: #27ae60; }
+    .kpi-change.negative { color: #e74c3c; }
+    .kpi-change.neutral { color: var(--muted); }
     .title { font-weight:700; font-size:24px; letter-spacing:-0.01em; }
     .status { font-size:12px; color:var(--muted); margin-top:4px; }
     .controls { display:grid; grid-template-columns: repeat(3, 240px) 1fr; gap:12px 16px; align-items:end; margin:12px 0 6px; }
@@ -55,14 +65,48 @@
     .alert-severity { font-size:11px; color:var(--muted); text-transform:uppercase; }
     .alert-dismiss { border:0; background:transparent; font-size:18px; color:var(--muted); cursor:pointer; padding:0; width:20px; height:20px; }
     .alert-message { padding:0 12px 12px; font-size:12px; color:var(--text); }
+    .interaction-status { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+    .filter-status { font-size: 12px; color: var(--muted); }
+    .reset-btn { border: none; background: var(--panel); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; box-shadow: var(--shadow); }
+    .reset-btn:hover { background: #f0f0f0; }
+    .action-btn { border: none; background: var(--panel); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; box-shadow: var(--shadow); margin-left: 8px; }
+    .action-btn:hover { background: #f0f0f0; }
+    .realtime-btn { border: none; background: var(--panel); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; box-shadow: var(--shadow); }
+    .realtime-btn.active { background: #007AFF; color: white; }
+    .realtime-btn:hover { background: #f0f0f0; }
+    .realtime-btn.active:hover { background: #0056D6; }
+    .refresh-btn { border: none; background: var(--panel); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; box-shadow: var(--shadow); }
+    .refresh-btn:hover { background: #f0f0f0; }
   </style>
 </head>
 <body>
   <div class="dashboard">
     <div class="dashboard-header">
-      <div>
+      <div class="header-left">
         <div class="title">CFO Dashboard</div>
-        <div id="loading-indicator" class="status">Загрузка…</div>
+        <div id="loading-indicator" class="status">ООО Прогресс • Декабрь 2024</div>
+      </div>
+      <div class="kpi-cards">
+        <div class="kpi-card kpi-revenue">
+          <div class="kpi-value" id="kpi-revenue-value">125.6 млн ₽</div>
+          <div class="kpi-label">Выручка</div>
+          <div class="kpi-change positive" id="kpi-revenue-change">+8.5%</div>
+        </div>
+        <div class="kpi-card kpi-ebitda">
+          <div class="kpi-value" id="kpi-ebitda-value">28.9 млн ₽</div>
+          <div class="kpi-label">EBITDA</div>
+          <div class="kpi-change positive" id="kpi-ebitda-change">+12.3%</div>
+        </div>
+        <div class="kpi-card kpi-cash">
+          <div class="kpi-value" id="kpi-cash-value">45.6 млн ₽</div>
+          <div class="kpi-label">Остаток ДС</div>
+          <div class="kpi-change neutral" id="kpi-cash-change">4.2 мес</div>
+        </div>
+        <div class="kpi-card kpi-margin">
+          <div class="kpi-value" id="kpi-margin-value">23.1%</div>
+          <div class="kpi-label">EBITDA маржа</div>
+          <div class="kpi-change positive" id="kpi-margin-change">+0.8п.п.</div>
+        </div>
       </div>
       <div id="alerts-container" aria-live="polite"></div>
     </div>
@@ -76,9 +120,29 @@
         </div>
       </div>
       <div class="control">
+        <label>От</label>
+        <input type="date" id="date-from" value="2024-01-01" />
+      </div>
+      <div class="control">
+        <label>До</label>
+        <input type="date" id="date-to" value="2024-12-31" />
+      </div>
+      <div class="control">
         <label>Компания</label>
         <select id="company-select">
           <option value="all">Все компании</option>
+          <option value="progress">ООО Прогресс</option>
+          <option value="progress-center">Прогресс Центр</option>
+          <option value="progress-south">Прогресс Юг</option>
+          <option value="progress-north">Прогресс Север</option>
+        </select>
+      </div>
+      <div class="control">
+        <label>Валюта</label>
+        <select id="currency-select">
+          <option value="RUB" selected>₽ RUB</option>
+          <option value="USD">$ USD</option>
+          <option value="EUR">€ EUR</option>
         </select>
       </div>
       <div class="control">
@@ -88,7 +152,20 @@
           <option value="percentage">Доли (100%)</option>
         </select>
       </div>
-      <div></div>
+      <div class="control">
+        <label>Сравнение</label>
+        <select id="comparison-select">
+          <option value="none">Без сравнения</option>
+          <option value="prev-month">К пред. месяцу</option>
+          <option value="prev-year" selected>К пред. году</option>
+          <option value="plan">К плану</option>
+        </select>
+      </div>
+      <div class="control">
+        <button id="print-page-btn" class="action-btn">🖨️ Печать</button>
+        <button id="export-excel-btn" class="action-btn">📊 Excel</button>
+        <button id="refresh-btn" class="action-btn">🔄 Обновить</button>
+      </div>
     </div>
     <div class="page-navigation">
       <div class="segmented" role="tablist" aria-label="Разделы">
@@ -98,51 +175,71 @@
         <button class="segment-tab" data-page="cash">ДДС и ликвидность</button>
         <button class="segment-tab" data-page="ar">Дебиторка</button>
       </div>
+      <div class="interaction-status">
+        <span id="filter-indicator" class="filter-status"></span>
+        <button id="toggle-realtime-btn" class="realtime-btn active" title="Переключить авто-обновление">📡</button>
+        <button id="manual-refresh-btn" class="refresh-btn" title="Обновить данные вручную">⟳</button>
+        <button id="reset-all-btn" class="reset-btn" title="Сбросить все фильтры и масштабирование (ESC)">🔄</button>
+      </div>
     </div>
     <main id="pages">
       <section id="page-overview" class="page-content active">
         <div class="grid">
-          <div class="card"><div class="card-header"><div class="card-title">Динамика выручки, млн ₽</div><div class="card-subtle">Факт · План · ПГ · Прогноз</div></div><div class="chart-body"><canvas id="revenue-trend-chart"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title">Маржинальность, %</div><div class="card-subtle">Валовая · EBITDA · Чистая</div></div><div class="chart-body"><canvas id="margins-trend-chart"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title">Движение ДС (Waterfall), млн ₽</div><div class="card-subtle">Opening → OCF → ICF → FCF → Closing</div></div><div class="chart-body"><canvas id="cashflow-chart"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title">План vs Факт (Variance), млн ₽</div><div class="card-subtle">Revenue · COGS · Gross · OPEX · EBITDA</div></div><div class="chart-body"><canvas id="variance-chart"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title">Динамика выручки, млн ₽</div><div class="card-subtle">Факт · План · ПГ · Прогноз</div></div><div class="chart-body"><canvas id="revenue-trend-chart" data-lazy="chart"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title">Маржинальность, %</div><div class="card-subtle">Валовая · EBITDA · Чистая</div></div><div class="chart-body"><canvas id="margins-trend-chart" data-lazy="chart"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title">Движение ДС (Waterfall), млн ₽</div><div class="card-subtle">Opening → OCF → ICF → FCF → Closing</div></div><div class="chart-body"><canvas id="cashflow-chart" data-lazy="chart"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title">План vs Факт (Variance), млн ₽</div><div class="card-subtle">Revenue · COGS · Gross · OPEX · EBITDA</div></div><div class="chart-body"><canvas id="variance-chart" data-lazy="chart"></canvas></div></div>
         </div>
       </section>
       <section id="page-sales" class="page-content">
         <div class="grid">
-          <div class="card"><div class="card-header"><div class="card-title">Выручка по направлениям</div><div class="card-subtle">Абсолют / 100%</div></div><div class="chart-body"><canvas id="branches-sales-chart"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title">Средний чек (тренд)</div><div class="card-subtle">Sparkline</div></div><div class="chart-body"><canvas id="avg-check-chart"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title">Выручка по направлениям</div><div class="card-subtle">Абсолют / 100%</div></div><div class="chart-body"><canvas id="branches-sales-chart" data-lazy="chart"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title">Средний чек (тренд)</div><div class="card-subtle">Sparkline</div></div><div class="chart-body"><canvas id="avg-check-chart" data-lazy="chart"></canvas></div></div>
         </div>
       </section>
       <section id="page-profit" class="page-content">
         <div class="grid">
-          <div class="card"><div class="card-header"><div class="card-title">EBITDA Bridge (Plan → Fact)</div><div class="card-subtle">Waterfall</div></div><div class="chart-body"><canvas id="ebitda-bridge-chart"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title">Маржа по филиалам</div><div class="card-subtle">Гориз. бары</div></div><div class="chart-body"><canvas id="margin-branches-chart"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title">EBITDA Bridge (Plan → Fact)</div><div class="card-subtle">Waterfall</div></div><div class="chart-body"><canvas id="ebitda-bridge-chart" data-lazy="chart"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title">Маржа по филиалам</div><div class="card-subtle">Гориз. бары</div></div><div class="chart-body"><canvas id="margin-branches-chart" data-lazy="chart"></canvas></div></div>
         </div>
       </section>
       <section id="page-cash" class="page-content">
         <div class="grid">
-          <div class="card"><div class="card-header"><div class="card-title">Cash Flow Bridge</div><div class="card-subtle">OCF · ICF · FCF</div></div><div class="chart-body"><canvas id="cashflow-bridge-chart"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title">Прогноз ликвидности (недели)</div><div class="card-subtle">Линия</div></div><div class="chart-body"><canvas id="weekly-forecast-chart"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title">Cash Flow Bridge</div><div class="card-subtle">OCF · ICF · FCF</div></div><div class="chart-body"><canvas id="cashflow-bridge-chart" data-lazy="chart"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title">Прогноз ликвидности (недели)</div><div class="card-subtle">Линия</div></div><div class="chart-body"><canvas id="weekly-forecast-chart" data-lazy="chart"></canvas></div></div>
         </div>
       </section>
       <section id="page-ar" class="page-content">
         <div class="grid">
-          <div class="card"><div class="card-header"><div class="card-title">Aging (0-30 / 31-60 / 61-90 / 90+)</div><div class="card-subtle">Гориз. бары</div></div><div class="chart-body"><canvas id="aging-analysis-chart"></canvas></div></div>
-          <div class="card"><div class="card-header"><div class="card-title">DSO (тренд)</div><div class="card-subtle">Линия</div></div><div class="chart-body"><canvas id="dso-trends-chart"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title">Aging (0-30 / 31-60 / 61-90 / 90+)</div><div class="card-subtle">Гориз. бары</div></div><div class="chart-body"><canvas id="aging-analysis-chart" data-lazy="chart"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title">DSO (тренд)</div><div class="card-subtle">Линия</div></div><div class="chart-body"><canvas id="dso-trends-chart" data-lazy="chart"></canvas></div></div>
         </div>
       </section>
     </main>
   </div>
   <script src="lib/Chart-2.9.4.min.js"></script>
+  
+  <!-- Embedded sample data to avoid CORS issues -->
+  <script>
+    window.EMBEDDED_SAMPLE_DATA = {"meta":{"period":"2024-11-30","currency":"RUB","company":"ООО Прогресс","reportType":"monthly","schemaVersion":"3.0.0"},"kpi":{"revenue":{"current":125600000,"momChange":8.5,"yoyChange":23.2},"ebitda":28900000,"ocf":31200000,"cashEnd":45600000,"cashRunwayMonths":4.2,"margins":{"gross":42.3,"ebitda":23.1,"net":18.7}},"timeSeries":{"revenue":{"fact":[85200000,89800000,95600000,98500000,105200000,112300000,108900000,115600000,120300000,125600000,130200000,135800000],"plan":[88000000,92000000,96000000,100000000,108000000,116000000,112000000,118000000,124000000,130000000,136000000,142000000],"prevYear":[78500000,82100000,87200000,89200000,92100000,95800000,99200000,102500000,108900000,115200000,118600000,122100000],"forecast":[141000000,147500000,153000000,158500000],"dates":["2024-01","2024-02","2024-03","2024-04","2024-05","2024-06","2024-07","2024-08","2024-09","2024-10","2024-11","2024-12"]},"margins":{"gross":[40.8,41.2,41.6,41.2,41.8,42.1,41.6,42.0,42.2,42.3,42.1,41.9],"ebitda":[21.5,21.8,22.2,22.1,22.8,23.2,22.5,23.0,23.3,23.1,22.9,22.6],"net":[17.2,17.5,17.9,17.8,18.2,18.6,18.1,18.4,18.9,18.7,18.3,18.0],"dates":["2024-01","2024-02","2024-03","2024-04","2024-05","2024-06","2024-07","2024-08","2024-09","2024-10","2024-11","2024-12"]},"cashFlow":{"opening":38200000,"ocf":[31200000],"icf":[-15600000],"fcf":[15600000],"closing":45600000,"labels":["Opening","OCF","ICF","FCF","Closing"],"monthly":{"ocf":[28500000,29200000,30800000,29600000,31500000,32100000,28900000,30200000,31800000,31200000,32600000,33100000],"icf":[-12200000,-13800000,-14200000,-15100000,-16200000,-15600000,-14800000,-15900000,-16500000,-15600000,-17200000,-18100000],"fcf":[16300000,15400000,16600000,14500000,15300000,16500000,14100000,14300000,15300000,15600000,15400000,15000000],"dates":["2024-01","2024-02","2024-03","2024-04","2024-05","2024-06","2024-07","2024-08","2024-09","2024-10","2024-11","2024-12"]}},"weeklyForecast":{"cashBalance":[45600000,47200000,48800000,46900000,48500000,50100000,49200000,50800000,52400000,51500000,53100000,52200000],"weeks":["Неделя 1","Неделя 2","Неделя 3","Неделя 4","Неделя 5","Неделя 6","Неделя 7","Неделя 8","Неделя 9","Неделя 10","Неделя 11","Неделя 12"]}},"structures":{"byBranch":[{"name":"Розница","revenue":75360000,"profit":18200000,"margin":24.1,"share":60.0},{"name":"Опт","revenue":37680000,"profit":8900000,"margin":23.6,"share":30.0},{"name":"Онлайн","revenue":12560000,"profit":1800000,"margin":14.3,"share":10.0}],"byOrganization":[{"name":"Прогресс Центр","revenue":45600000,"momChange":12.3,"yoyChange":28.1,"sparkline":[38200,39800,42100,44300,45600]},{"name":"Прогресс Юг","revenue":38200000,"momChange":6.8,"yoyChange":19.5,"sparkline":[35800,36200,37100,37800,38200]},{"name":"Прогресс Север","revenue":25600000,"momChange":4.2,"yoyChange":16.8,"sparkline":[23800,24200,24800,25200,25600]},{"name":"Прогресс Восток","revenue":16200000,"momChange":8.9,"yoyChange":22.3,"sparkline":[14200,14800,15400,15800,16200]}]},"debtors":[{"name":"ООО Альфа","amount":5600000,"daysOverdue":45,"bucket":"31-60","expectedDate":"2024-12-15","creditLimit":8000000,"manager":"Иванов И.И.","riskLevel":"medium"},{"name":"ИП Петров","amount":3200000,"daysOverdue":15,"bucket":"0-30","expectedDate":"2024-12-05","creditLimit":5000000,"manager":"Сидоров С.С.","riskLevel":"low"},{"name":"ООО Бета","amount":2800000,"daysOverdue":95,"bucket":"90+","expectedDate":"2025-01-30","creditLimit":3000000,"manager":"Козлов К.К.","riskLevel":"high"},{"name":"ООО Гамма","amount":1900000,"daysOverdue":0,"bucket":"0-30","expectedDate":"2024-12-10","creditLimit":4000000,"manager":"Волков В.В.","riskLevel":"low"}],"arAging":{"buckets":{"0-30":8200000,"31-60":6800000,"61-90":2400000,"90+":3100000},"totalAR":20500000},"coefficients":{"current":2.1,"quick":1.8,"debtEbitda":2.3,"interestCoverage":12.5,"autonomy":0.68,"dso":47,"dpo":35,"dii":28,"ccc":40,"targets":{"current":[1.5,2.5],"quick":[1.0,2.0],"debtEbitda":[0.0,3.0],"ccc":[30,50]},"sparklines":{"current":[1.9,2.0,2.1,2.0,2.1],"dso":[45,46,48,47,47],"ccc":[42,41,39,40,40]}},"planFactDrivers":[{"driver":"Выручка","fact":125600000,"plan":130000000,"variance":-4400000,"variancePercent":-3.4},{"driver":"COGS","fact":72500000,"plan":75400000,"variance":2900000,"variancePercent":3.8},{"driver":"Валовая","fact":53100000,"plan":54600000,"variance":-1500000,"variancePercent":-2.7},{"driver":"OPEX","fact":24200000,"plan":24000000,"variance":-200000,"variancePercent":-0.8},{"driver":"EBITDA","fact":28900000,"plan":30600000,"variance":-1700000,"variancePercent":-5.6}],"cashAccounts":[{"bank":"Сбербанк","available":28600000,"blocked":1200000,"concentration":65.2,"sparkline":[26800,27200,28100,28600,28600]},{"bank":"ВТБ","available":12800000,"blocked":0,"concentration":28.1,"sparkline":[13200,12900,12600,12800,12800]},{"bank":"Альфа-Банк","available":3200000,"blocked":0,"concentration":7.0,"sparkline":[3100,3000,3100,3200,3200]}],"alerts":[{"type":"overdue","severity":"medium","message":"Просрочка по ООО Бета превышает 90 дней","value":95,"threshold":90},{"type":"concentration","severity":"high","message":"Концентрация в Сбербанке превышает 60%","value":65.2,"threshold":60},{"type":"cash_shortage","severity":"medium","message":"Cash Runway менее 6 месяцев","value":4.2,"threshold":6}]};
+    
+    window.EMBEDDED_ALERTS_CONFIG = {"alertRules":{"cash_shortage":{"name":"Нехватка денежных средств","description":"Cash Runway менее установленного порога","metric":"cashRunwayMonths","thresholds":{"critical":1,"high":3,"medium":6,"low":12},"operator":"less_than","message":"Cash Runway составляет {value} мес. Требуется пополнение оборотных средств","recommendations":["Ускорить взыскание дебиторской задолженности","Пересмотреть условия оплаты с поставщиками","Рассмотреть кредитные линии"]},"overdue_ar":{"name":"Критическая просрочка","description":"Дебиторская задолженность с просрочкой более 90 дней","metric":"arAging.buckets.90+","thresholds":{"critical":10000000,"high":5000000,"medium":2000000,"low":1000000},"operator":"greater_than","message":"Просрочка 90+ дней: {value} млн ₽. Риск списания безнадежных долгов","recommendations":["Принудительное взыскание через суд","Работа с коллекторскими агентствами","Создание резерва по сомнительным долгам"]}},"alertSettings":{"enabledAlerts":["cash_shortage","overdue_ar"],"notificationChannels":{"dashboard":true,"email":false,"sms":false,"telegram":false},"updateFrequency":"realtime","maxAlertsDisplayed":5,"autoHideAfterMinutes":0,"priorityOrder":["critical","high","medium","low"]},"severityColors":{"critical":"#ff3b30","high":"#ff6347","medium":"#ff9500","low":"#34c759"}};
+  </script>
   <script src="src/core/utils.js"></script>
   <script src="src/core/data.js"></script>
   <script src="src/core/state.js"></script>
   <script src="src/core/charts.js"></script>
   <script src="src/core/alerts.js"></script>
+  <script src="src/core/kpi-cards.js"></script>
   <script src="src/core/renderers.js"></script>
   <script src="src/core/tabs.js"></script>
   <script src="src/core/ui-bindings.js"></script>
+  <script src="src/core/export.js"></script>
+  <script src="src/core/interactivity.js"></script>
+  <script src="src/core/realtime-fixed.js"></script>
+  <script src="src/core/settings-fixed.js"></script>
+  <script src="src/core/analytics-fixed.js"></script>
+  <script src="src/core/performance-fixed.js"></script>
   <script src="src/index.js"></script>
 </body>
 </html>

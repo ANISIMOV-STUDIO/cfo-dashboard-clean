@@ -110,6 +110,13 @@
         loadAlertsConfig: function() {
             var self = this;
             try {
+                // Use embedded config first if available
+                if (window.EMBEDDED_ALERTS_CONFIG) {
+                    window.AlertsEngine.loadConfig(window.EMBEDDED_ALERTS_CONFIG);
+                    return;
+                }
+                
+                // Fallback to XHR loading
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', './alerts-config.json', true);
                 xhr.onreadystatechange = function() {
@@ -139,8 +146,10 @@
                 window.PageRenderers.clearCharts();
             }
             
-            // Load sample data if available
-            if (window.sampleData) {
+            // Load sample data if available (check embedded data first)
+            if (window.EMBEDDED_SAMPLE_DATA) {
+                this.updateDashboard(window.EMBEDDED_SAMPLE_DATA);
+            } else if (window.sampleData) {
                 this.updateDashboard(window.sampleData);
             } else {
                 // Try to fetch sample-data.json
@@ -451,8 +460,8 @@
                 if (pageElement) {
                     var canvases = pageElement.querySelectorAll('canvas');
                     canvases.forEach(function(canvas) {
-                        var chart = Chart.getChart(canvas);
-                        if (chart) {
+                        var chart = canvas.chart;
+                        if (chart && chart.resize) {
                             chart.resize();
                             chart.update('none');
                         }
@@ -509,7 +518,7 @@
             if (pageElement) {
                 var canvases = pageElement.querySelectorAll('canvas');
                 canvases.forEach(function(canvas) {
-                    var chart = Chart.getChart(canvas);
+                    var chart = canvas.chart;
                     if (chart && window.ChartFactory) {
                         window.ChartFactory.applyShareMode(chart, mode);
                     }
@@ -532,14 +541,14 @@
             var canvases = document.querySelectorAll('canvas');
             
             canvases.forEach(function(canvas, index) {
-                var chart = Chart.getChart(canvas);
-                if (chart) {
+                var chart = canvas.chart;
+                if (chart && chart.config) {
                     metrics['chart-' + index] = {
                         type: chart.config.type,
-                        dataLength: chart.data.datasets.length,
-                        pointsCount: chart.data.datasets.reduce(function(sum, dataset) {
+                        dataLength: chart.data.datasets ? chart.data.datasets.length : 0,
+                        pointsCount: chart.data.datasets ? chart.data.datasets.reduce(function(sum, dataset) {
                             return sum + (dataset.data ? dataset.data.length : 0);
-                        }, 0)
+                        }, 0) : 0
                     };
                 }
             });

@@ -143,19 +143,19 @@
                     },
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
                         scales: {
-                            x: {
-                                grid: { display: false },
-                                ticks: { font: { size: 11 } }
-                            },
-                            y: {
-                                grid: { color: 'rgba(189, 195, 199, 0.2)' },
+                            xAxes: [{
+                                gridLines: { display: false },
+                                ticks: { fontSize: 11 }
+                            }],
+                            yAxes: [{
+                                gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
                                 ticks: {
-                                    font: { size: 11 },
+                                    fontSize: 11,
                                     callback: function(value) {
                                         return value + '%';
                                     }
                                 }
-                            }
+                            }]
                         }
                     })
                 };
@@ -216,19 +216,19 @@
                     },
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
                         scales: {
-                            x: {
-                                grid: { display: false },
-                                ticks: { font: { size: 11 } }
-                            },
-                            y: {
-                                grid: { color: 'rgba(189, 195, 199, 0.2)' },
+                            xAxes: [{
+                                gridLines: { display: false },
+                                ticks: { fontSize: 11 }
+                            }],
+                            yAxes: [{
+                                gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
                                 ticks: {
-                                    font: { size: 11 },
+                                    fontSize: 11,
                                     callback: function(value) {
                                         return window.formatMoney(value, 'RUB', 0);
                                     }
                                 }
-                            }
+                            }]
                         },
                         plugins: {
                             tooltip: {
@@ -294,17 +294,17 @@
                     },
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
                         scales: {
-                            x: {
-                                grid: { display: false },
+                            xAxes: [{
+                                gridLines: { display: false },
                                 ticks: { 
-                                    font: { size: 10 },
+                                    fontSize: 10,
                                     maxRotation: 45
                                 }
-                            },
-                            y: {
-                                grid: { color: 'rgba(189, 195, 199, 0.2)' },
+                            }],
+                            yAxes: [{
+                                gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
                                 ticks: {
-                                    font: { size: 11 },
+                                    fontSize: 11,
                                     callback: function(value) {
                                         return window.formatMoney(value, 'RUB', 0);
                                     }
@@ -353,9 +353,9 @@
                     // Use share percentages
                     chartData = branches.map(function(b) { return b.share || 0; });
                     yAxisConfig = {
-                        grid: { color: 'rgba(189, 195, 199, 0.2)' },
+                        gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
                         ticks: {
-                            font: { size: 11 },
+                            fontSize: 11,
                             callback: function(value) {
                                 return value + '%';
                             }
@@ -366,9 +366,9 @@
                     // Use absolute revenue values
                     chartData = branches.map(function(b) { return b.revenue || 0; });
                     yAxisConfig = {
-                        grid: { color: 'rgba(189, 195, 199, 0.2)' },
+                        gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
                         ticks: {
-                            font: { size: 11 },
+                            fontSize: 11,
                             callback: function(value) {
                                 return window.formatMoney(value, 'RUB', 0);
                             }
@@ -394,8 +394,8 @@
                         scales: {
                             x: yAxisConfig,
                             y: {
-                                grid: { display: false },
-                                ticks: { font: { size: 11 } }
+                                gridLines: { display: false },
+                                ticks: { fontSize: 11 }
                             }
                         },
                         plugins: {
@@ -420,14 +420,11 @@
             
             // Average check sparkline (simplified)
             this.ensureChart('avg-check-chart', 'line', function() {
-                var canvas = document.getElementById('avg-check-chart');
-                if (!canvas) return null;
-                
                 // Generate sample average check trend data
                 var avgCheckData = [12500, 13200, 12800, 13600, 14100, 13900, 14300];
                 var labels = ['Мая', 'Июня', 'Июля', 'Авг', 'Сен', 'Окт', 'Ноя'];
                 
-                return window.ChartFactory.createLineChart('avg-check-chart', {
+                return window.ChartFactory.createSparkline('avg-check-chart', {
                     dates: labels,
                     fact: avgCheckData
                 });
@@ -475,17 +472,17 @@
                     },
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
                         scales: {
-                            x: {
-                                grid: { display: false },
+                            xAxes: [{
+                                gridLines: { display: false },
                                 ticks: { 
-                                    font: { size: 10 },
+                                    fontSize: 10,
                                     maxRotation: 45
                                 }
-                            },
-                            y: {
-                                grid: { color: 'rgba(189, 195, 199, 0.2)' },
+                            }],
+                            yAxes: [{
+                                gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
                                 ticks: {
-                                    font: { size: 11 },
+                                    fontSize: 11,
                                     callback: function(value) {
                                         return window.formatMoney(value, 'RUB', 0);
                                     }
@@ -540,10 +537,10 @@
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
                         indexAxis: 'y',
                         scales: {
-                            x: {
-                                grid: { color: 'rgba(189, 195, 199, 0.2)' },
+                            xAxes: [{
+                                gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
                                 ticks: {
-                                    font: { size: 11 },
+                                    fontSize: 11,
                                     callback: function(value) {
                                         return value + '%';
                                     }
@@ -551,8 +548,8 @@
                                 max: Math.max.apply(Math, branches.map(function(b) { return b.margin || 0; })) + 5
                             },
                             y: {
-                                grid: { display: false },
-                                ticks: { font: { size: 11 } }
+                                gridLines: { display: false },
+                                ticks: { fontSize: 11 }
                             }
                         },
                         plugins: {
@@ -626,17 +623,17 @@
                     },
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
                         scales: {
-                            x: {
-                                grid: { display: false },
+                            xAxes: [{
+                                gridLines: { display: false },
                                 ticks: { 
-                                    font: { size: 10 },
+                                    fontSize: 10,
                                     maxRotation: 45
                                 }
-                            },
-                            y: {
-                                grid: { color: 'rgba(189, 195, 199, 0.2)' },
+                            }],
+                            yAxes: [{
+                                gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
                                 ticks: {
-                                    font: { size: 11 },
+                                    fontSize: 11,
                                     callback: function(value) {
                                         return window.formatMoney(value, 'RUB', 0);
                                     }
@@ -667,54 +664,46 @@
             
             // Weekly forecast chart
             this.ensureChart('weekly-forecast-chart', 'line', function() {
-                var canvas = document.getElementById('weekly-forecast-chart');
-                if (!canvas) return null;
+                // Use real weekly forecast data if available
+                var weeklyData = data.timeSeries && data.timeSeries.weeklyForecast;
+                var weeks = weeklyData ? weeklyData.weeks : (function() {
+                    var result = [];
+                    for (var i = 0; i < 12; i++) {
+                        result.push('Неделя ' + (i+1));
+                    }
+                    return result;
+                })();
+                var cashForecast = weeklyData ? weeklyData.cashBalance : [];
                 
-                // Generate sample weekly forecast data
-                var weeks = [];
-                var cashForecast = [];
-                var currentCash = (data.kpi && data.kpi.cashEnd) || 45600000;
-                
-                // Generate 12 weeks of forecast
-                for (var i = 1; i <= 12; i++) {
-                    weeks.push('Неделя ' + i);
-                    // Simulate weekly cash flow changes
-                    var weeklyChange = (Math.random() - 0.5) * 5000000; // Random changes
-                    currentCash += weeklyChange;
-                    cashForecast.push(Math.max(0, currentCash)); // Prevent negative cash
+                // Fallback to sample data if no real data
+                if (!weeklyData) {
+                    weeks = [];
+                    cashForecast = [];
+                    var currentCash = (data.kpi && data.kpi.cashEnd) || 45600000;
+                    
+                    for (var i = 1; i <= 12; i++) {
+                        weeks.push('Неделя ' + i);
+                        currentCash += (Math.random() - 0.5) * 5000000;
+                        cashForecast.push(Math.max(0, currentCash));
+                    }
                 }
                 
-                window.ChartFactory.ensureCanvasSize(canvas);
-                
-                var config = {
-                    type: 'line',
-                    data: {
-                        labels: weeks,
-                        datasets: [{
-                            label: 'Прогноз ликвидности',
-                            data: cashForecast,
-                            borderColor: '#FF6B6B',
-                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.1,
-                            pointRadius: 3,
-                            pointBackgroundColor: '#FF6B6B'
-                        }]
-                    },
-                    options: Object.assign({}, window.ChartFactory.defaultOptions, {
+                return window.ChartFactory.createLineChart('weekly-forecast-chart', {
+                    dates: weeks,
+                    fact: cashForecast,
+                    options: {
                         scales: {
-                            x: {
-                                grid: { display: false },
+                            xAxes: [{
+                                gridLines: { display: false },
                                 ticks: { 
-                                    font: { size: 10 },
+                                    fontSize: 10,
                                     maxRotation: 45
                                 }
-                            },
-                            y: {
-                                grid: { color: 'rgba(189, 195, 199, 0.2)' },
+                            }],
+                            yAxes: [{
+                                gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
                                 ticks: {
-                                    font: { size: 11 },
+                                    fontSize: 11,
                                     callback: function(value) {
                                         return window.formatMoney(value, 'RUB', 0);
                                     }
@@ -730,10 +719,8 @@
                                 }
                             }
                         }
-                    })
-                };
-                
-                return new Chart(canvas, config);
+                    }
+                });
             });
         },
         
@@ -776,18 +763,18 @@
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
                         indexAxis: 'y',
                         scales: {
-                            x: {
-                                grid: { color: 'rgba(189, 195, 199, 0.2)' },
+                            xAxes: [{
+                                gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
                                 ticks: {
-                                    font: { size: 11 },
+                                    fontSize: 11,
                                     callback: function(value) {
                                         return window.formatMoney(value, 'RUB', 0);
                                     }
                                 }
                             },
                             y: {
-                                grid: { display: false },
-                                ticks: { font: { size: 11 } }
+                                gridLines: { display: false },
+                                ticks: { fontSize: 11 }
                             }
                         },
                         plugins: {
@@ -846,14 +833,14 @@
                     },
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
                         scales: {
-                            x: {
-                                grid: { display: false },
-                                ticks: { font: { size: 11 } }
-                            },
-                            y: {
-                                grid: { color: 'rgba(189, 195, 199, 0.2)' },
+                            xAxes: [{
+                                gridLines: { display: false },
+                                ticks: { fontSize: 11 }
+                            }],
+                            yAxes: [{
+                                gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
                                 ticks: {
-                                    font: { size: 11 },
+                                    fontSize: 11,
                                     callback: function(value) {
                                         return value + ' дн.';
                                     }
@@ -887,8 +874,8 @@
             }
             
             // Check if there's already a Chart.js instance on this canvas
-            var existingChart = Chart.getChart(canvas);
-            if (existingChart) {
+            var existingChart = canvas.chart;
+            if (existingChart && existingChart.destroy) {
                 existingChart.destroy();
             }
             
@@ -946,8 +933,8 @@
             var allCanvases = document.querySelectorAll('canvas');
             allCanvases.forEach(function(canvas) {
                 try {
-                    var chart = Chart.getChart(canvas);
-                    if (chart) {
+                    var chart = canvas.chart;
+                    if (chart && chart.destroy) {
                         chart.destroy();
                     }
                 } catch (error) {
@@ -978,10 +965,10 @@
                     delete PageRenderers.createdCharts[canvasId];
                 }
                 
-                // Also check Chart.js registry
+                // Also check canvas.chart property
                 try {
-                    var chart = Chart.getChart(canvas);
-                    if (chart) {
+                    var chart = canvas.chart;
+                    if (chart && chart.destroy) {
                         chart.destroy();
                     }
                 } catch (error) {

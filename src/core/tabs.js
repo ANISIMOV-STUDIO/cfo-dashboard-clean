@@ -220,7 +220,7 @@
                 var canvases = pageElement.querySelectorAll('canvas');
                 canvases.forEach(function(canvas) {
                     try {
-                        var chart = Chart.getChart(canvas);
+                        var chart = canvas.chart;
                         if (chart) {
                             chart.destroy();
                         }
@@ -294,8 +294,8 @@
                 var canvases = pageElement.querySelectorAll('canvas');
                 canvases.forEach(function(canvas) {
                     try {
-                        var chart = Chart.getChart(canvas);
-                        if (chart) {
+                        var chart = canvas.chart;
+                        if (chart && chart.resize) {
                             // Resize chart to fit container
                             chart.resize();
                             

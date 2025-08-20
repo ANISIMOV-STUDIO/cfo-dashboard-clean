@@ -96,11 +96,11 @@
                 type: 'bar',
                 data: {
                     labels: data.labels || [],
-                    datasets: [{
+                    datasets: data.datasets || [{
                         label: data.label || 'Values',
-                        data: data.values || [],
-                        backgroundColor: data.colors || this.colors.primary,
-                        borderColor: data.borderColors || this.colors.primary,
+                        data: data.values || data.data || [],
+                        backgroundColor: data.colors || data.backgroundColor || this.colors.primary,
+                        borderColor: data.borderColors || data.borderColor || this.colors.primary,
                         borderWidth: 1,
                         borderRadius: 4
                     }]
@@ -191,7 +191,7 @@
             var config = {
                 type: 'line',
                 data: {
-                    labels: data.dates || [],
+                    labels: data.dates || data.labels || [],
                     datasets: datasets
                 },
                 options: Object.assign({}, this.defaultOptions, data.options || {})
@@ -245,52 +245,44 @@
         },
         
         // Create sparkline chart (minimal line chart)
-        createSparkline: function(canvasId, values) {
+        createSparkline: function(canvasId, data) {
             var canvas = document.getElementById(canvasId);
             if (!canvas) return null;
             
-            // Smaller canvas for sparklines
-            canvas.width = 80;
-            canvas.height = 30;
+            this.ensureCanvasSize(canvas);
+            
+            // Handle both old format (array) and new format (object)
+            var values = Array.isArray(data) ? data : (data.fact || data.values || data.data || []);
+            var labels = data.dates || data.labels || new Array(values.length).fill('');
             
             var config = {
                 type: 'line',
                 data: {
-                    labels: new Array(values.length).fill(''),
+                    labels: labels,
                     datasets: [{
                         data: values,
                         borderColor: this.colors.primary,
                         backgroundColor: this.colors.primary + '20',
-                        borderWidth: 1,
+                        borderWidth: 2,
                         fill: true,
                         tension: 0.2,
-                        pointRadius: 0,
-                        pointHoverRadius: 0
+                        pointRadius: 2,
+                        pointHoverRadius: 4
                     }]
                 },
-                options: {
-                    responsive: false,
-                    maintainAspectRatio: false,
-                    animation: false,
+                options: Object.assign({}, this.defaultOptions, {
                     plugins: {
                         legend: { display: false },
-                        tooltip: { enabled: false }
-                    },
-                    scales: {
-                        x: {
-                            display: false,
-                            grid: { display: false }
-                        },
-                        y: {
-                            display: false,
-                            grid: { display: false }
+                        tooltip: { 
+                            enabled: true,
+                            callbacks: {
+                                label: function(context) {
+                                    return window.formatMoney ? window.formatMoney(context.parsed.y, 'RUB', 0) : context.parsed.y;
+                                }
+                            }
                         }
-                    },
-                    elements: {
-                        point: { radius: 0 },
-                        line: { borderWidth: 1 }
                     }
-                }
+                })
             };
             
             return new Chart(canvas, config);

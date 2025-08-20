@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(del realtime.js)",
+      "Bash(rename:*)",
+      "Bash(rm:*)",
+      "Bash(mv:*)",
+      "Bash(copy:*)",
+      "Bash(cp:*)",
+      "Bash(touch:*)"
     ],
     "deny": [],
     "ask": []

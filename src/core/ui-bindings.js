@@ -15,6 +15,10 @@
             this.bindModeToggles();
             this.bindExportButtons();
             this.bindModeSelector();
+            this.bindAdvancedFilters();
+            this.bindRefreshButton();
+            this.bindResetButton();
+            this.bindRealtimeControls();
         },
         
         // Bind print functionality to buttons
@@ -212,6 +216,180 @@
                 
             } catch (error) {
                 console.error('Error handling mode change:', error);
+            }
+        },
+        
+        // Bind advanced filters
+        bindAdvancedFilters: function() {
+            var self = this;
+            
+            // Date filters
+            var dateFrom = document.getElementById('date-from');
+            var dateTo = document.getElementById('date-to');
+            if (dateFrom && dateTo) {
+                dateFrom.addEventListener('change', function() {
+                    self.handleDateChange();
+                });
+                dateTo.addEventListener('change', function() {
+                    self.handleDateChange();
+                });
+            }
+            
+            // Company filter
+            var companySelect = document.getElementById('company-select');
+            if (companySelect) {
+                companySelect.addEventListener('change', function() {
+                    self.handleCompanyChange(this.value);
+                });
+            }
+            
+            // Currency filter
+            var currencySelect = document.getElementById('currency-select');
+            if (currencySelect) {
+                currencySelect.addEventListener('change', function() {
+                    self.handleCurrencyChange(this.value);
+                });
+            }
+            
+            // Comparison filter
+            var comparisonSelect = document.getElementById('comparison-select');
+            if (comparisonSelect) {
+                comparisonSelect.addEventListener('change', function() {
+                    self.handleComparisonChange(this.value);
+                });
+            }
+        },
+        
+        // Handle date range changes
+        handleDateChange: function() {
+            var dateFrom = document.getElementById('date-from');
+            var dateTo = document.getElementById('date-to');
+            
+            if (dateFrom && dateTo && window.DashboardState) {
+                window.DashboardState.setFilters({
+                    dateFrom: dateFrom.value,
+                    dateTo: dateTo.value,
+                    periodPreset: 'custom'
+                });
+                
+                this.refreshDashboardData();
+            }
+        },
+        
+        // Handle company filter changes
+        handleCompanyChange: function(company) {
+            if (window.DashboardState) {
+                window.DashboardState.setFilters({
+                    company: company
+                });
+                
+                this.refreshDashboardData();
+            }
+        },
+        
+        // Handle currency changes
+        handleCurrencyChange: function(currency) {
+            if (window.DashboardState) {
+                window.DashboardState.setFilters({
+                    currency: currency
+                });
+                
+                // Update formatting globally
+                if (window.FormatUtils) {
+                    window.FormatUtils.defaultCurrency = currency;
+                }
+                
+                this.refreshDashboardData();
+            }
+        },
+        
+        // Handle comparison mode changes
+        handleComparisonChange: function(comparison) {
+            if (window.DashboardState) {
+                window.DashboardState.setFilters({
+                    comparisonMode: comparison
+                });
+                
+                this.refreshDashboardData();
+            }
+        },
+        
+        // Bind refresh button
+        bindRefreshButton: function() {
+            var refreshBtn = document.getElementById('refresh-btn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', function() {
+                    UIBindings.handleRefresh();
+                });
+            }
+        },
+        
+        // Handle manual refresh
+        handleRefresh: function() {
+            try {
+                // Show loading state
+                var loadingIndicator = document.getElementById('loading-indicator');
+                if (loadingIndicator) {
+                    loadingIndicator.textContent = 'Обновление...';
+                }
+                
+                // Simulate data reload
+                setTimeout(function() {
+                    UIBindings.refreshDashboardData();
+                    
+                    if (loadingIndicator) {
+                        loadingIndicator.textContent = 'ООО Прогресс • Декабрь 2024';
+                    }
+                    
+                    // Animate KPI cards
+                    if (window.KPICards) {
+                        ['revenue', 'ebitda', 'cash', 'margin'].forEach(function(type) {
+                            window.KPICards.animateCard(type);
+                        });
+                    }
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error refreshing dashboard:', error);
+            }
+        },
+        
+        // Bind reset all button
+        bindResetButton: function() {
+            var resetBtn = document.getElementById('reset-all-btn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function() {
+                    if (window.ChartInteractivity) {
+                        window.ChartInteractivity.restoreAllCharts();
+                    }
+                });
+            }
+        },
+        
+        // Bind real-time control buttons
+        bindRealtimeControls: function() {
+            var toggleRealtimeBtn = document.getElementById('toggle-realtime-btn');
+            var manualRefreshBtn = document.getElementById('manual-refresh-btn');
+            
+            if (toggleRealtimeBtn) {
+                toggleRealtimeBtn.addEventListener('click', function() {
+                    var isActive = this.classList.contains('active');
+                    
+                    if (window.RealtimeUpdates) {
+                        window.RealtimeUpdates.toggleAutoRefresh(!isActive);
+                    }
+                    
+                    this.classList.toggle('active');
+                    this.title = isActive ? 'Включить авто-обновление' : 'Выключить авто-обновление';
+                });
+            }
+            
+            if (manualRefreshBtn) {
+                manualRefreshBtn.addEventListener('click', function() {
+                    if (window.RealtimeUpdates) {
+                        window.RealtimeUpdates.triggerRefresh();
+                    }
+                });
             }
         },
         
