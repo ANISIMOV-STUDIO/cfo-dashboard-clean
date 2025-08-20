@@ -39,8 +39,8 @@
                 mode: 'index',
                 intersect: false,
                 backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                titleFontSize: 14,
-                bodyFontSize: 13,
+                titleFontSize: 16,
+                bodyFontSize: 15,
                 cornerRadius: 8,
                 displayColors: true,
                 xPadding: 12,
@@ -69,7 +69,7 @@
                         drawOnChartArea: false
                     },
                     ticks: {
-                        fontSize: 13,
+                        fontSize: 16,
                         fontColor: '#374151'
                     }
                 }],
@@ -80,7 +80,7 @@
                         drawBorder: false
                     },
                     ticks: {
-                        fontSize: 13,
+                        fontSize: 16,
                         fontColor: '#374151',
                         maxTicksLimit: 6,
                         callback: function(value) {
@@ -129,7 +129,7 @@
                                 color: 'rgba(17,24,39,0.08)'
                             },
                             ticks: {
-                                fontSize: 13,
+                                fontSize: 16,
                                 fontColor: '#374151',
                                 callback: function(value) {
                                     return window.formatMoney ? window.formatMoney(value, 'RUB', 0) : value;
@@ -141,7 +141,7 @@
                                 display: false
                             },
                             ticks: {
-                                fontSize: 13,
+                                fontSize: 16,
                                 fontColor: '#374151'
                             }
                         }]

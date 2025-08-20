@@ -25,6 +25,9 @@
             // Initialize SelectLite
             if (window.SelectLite) {
                 window.SelectLite.initialize();
+                console.log('SelectLite initialized');
+            } else {
+                console.warn('SelectLite not found');
             }
         },
         
@@ -559,6 +562,7 @@ window.SelectLite = (function() {
     function init(root) { 
         root = root || document; 
         var selects = root.querySelectorAll('.select .sel-btn');
+        console.log('SelectLite found ' + selects.length + ' selects');
         for (var i = 0; i < selects.length; i++) { 
             bind(selects[i]); 
         }
@@ -596,12 +600,14 @@ window.SelectLite = (function() {
                 ev.stopPropagation();
                 
                 // Update button text
-                var btnText = btn.querySelector('.sel-text') || btn;
                 var text = ev.target.textContent || ev.target.innerText;
-                if (btnText.tagName === 'BUTTON') {
-                    btnText.innerHTML = text + '<span class="sel-arrow">▾</span>';
+                var arrow = btn.querySelector('.sel-arrow');
+                if (arrow) {
+                    // Keep existing arrow, just update text before it
+                    btn.innerHTML = text + '<span class="sel-arrow">▾</span>';
                 } else {
-                    btnText.textContent = text;
+                    // Fallback if no arrow found
+                    btn.innerHTML = text + '<span class="sel-arrow">▾</span>';
                 }
                 
                 // Close dropdown

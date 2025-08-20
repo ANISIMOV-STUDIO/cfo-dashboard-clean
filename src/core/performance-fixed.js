@@ -37,7 +37,7 @@
             if (window.Chart && window.Chart.defaults) {
                 try {
                     Chart.defaults.global.defaultFontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-                    Chart.defaults.global.defaultFontSize = 12;
+                    Chart.defaults.global.defaultFontSize = 16;
                     Chart.defaults.global.defaultFontColor = '#374151';
                     Chart.defaults.global.defaultFontStyle = 'normal';
                     

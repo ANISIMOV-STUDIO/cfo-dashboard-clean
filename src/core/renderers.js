@@ -902,7 +902,7 @@
                 // Set safe defaults for Chart.js global config
                 if (window.Chart && window.Chart.defaults) {
                     Chart.defaults.global.defaultFontFamily = 'system-ui, -apple-system, sans-serif';
-                    Chart.defaults.global.defaultFontSize = 12;
+                    Chart.defaults.global.defaultFontSize = 16;
                     Chart.defaults.global.defaultFontColor = '#374151';
                 }
                 
