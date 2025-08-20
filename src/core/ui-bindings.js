@@ -25,13 +25,26 @@
             this.bindComparisonControls();
             this.bindCascadingFilters();
             
-            // Initialize SelectLite
-            if (window.SelectLite) {
-                window.SelectLite.initialize();
-                console.log('SelectLite initialized');
-            } else {
-                console.warn('SelectLite not found');
-            }
+            // Initialize SelectLite with delay to ensure DOM is ready
+            var self = this;
+            setTimeout(function() {
+                if (window.SelectLite) {
+                    window.SelectLite.initialize();
+                    console.log('SelectLite initialized');
+                    
+                    // Debug: check if selects are properly bound
+                    var selects = document.querySelectorAll('.select .sel-btn');
+                    console.log('Found ' + selects.length + ' select buttons');
+                    
+                    // Force re-bind if needed
+                    if (selects.length > 0) {
+                        self.debugSelectLite();
+                        self.forceBindSelects();
+                    }
+                } else {
+                    console.warn('SelectLite not found');
+                }
+            }, 100);
         },
         
         // Bind print functionality to buttons
@@ -713,6 +726,135 @@
             if (window.SelectLite) {
                 window.SelectLite.initialize(select);
             }
+        },
+        
+        // Debug SelectLite functionality
+        debugSelectLite: function() {
+            console.log('=== SelectLite Debug ===');
+            
+            // Check if selects have proper structure
+            var selects = document.querySelectorAll('.select');
+            console.log('Total .select containers:', selects.length);
+            
+            selects.forEach(function(select, index) {
+                var id = select.getAttribute('data-select-id');
+                var btn = select.querySelector('.sel-btn');
+                var menu = select.querySelector('.sel-menu');
+                var items = select.querySelectorAll('.sel-item');
+                
+                console.log('Select ' + index + ' (id: ' + id + '):');
+                console.log('  - Button:', !!btn);
+                console.log('  - Menu:', !!menu);
+                console.log('  - Items:', items.length);
+                console.log('  - Pointer events:', window.getComputedStyle(btn).pointerEvents);
+                console.log('  - Z-index:', window.getComputedStyle(select).zIndex);
+                
+                // Test click manually
+                if (btn) {
+                    var self = this;
+                    btn.addEventListener('click', function(e) {
+                        console.log('Manual click detected on select:', id);
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        var wrap = e.target.closest('.select');
+                        if (wrap) {
+                            var isOpen = wrap.classList.contains('open');
+                            console.log('Select is currently:', isOpen ? 'open' : 'closed');
+                            
+                            // Close all others first
+                            document.querySelectorAll('.select.open').forEach(function(openSelect) {
+                                openSelect.classList.remove('open');
+                            });
+                            
+                            // Toggle this one
+                            if (!isOpen) {
+                                wrap.classList.add('open');
+                                console.log('Opened select:', id);
+                            }
+                        }
+                    });
+                }
+            });
+        },
+        
+        // Force bind select events as fallback
+        forceBindSelects: function() {
+            console.log('Force binding select events...');
+            
+            var selects = document.querySelectorAll('.select');
+            selects.forEach(function(select) {
+                var btn = select.querySelector('.sel-btn');
+                var menu = select.querySelector('.sel-menu');
+                var items = select.querySelectorAll('.sel-item');
+                
+                if (!btn) return;
+                
+                // Remove existing event listeners by cloning
+                var newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                btn = newBtn;
+                
+                // Add click event to button
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log('Forced click on select:', select.getAttribute('data-select-id'));
+                    
+                    var wrap = e.target.closest('.select');
+                    if (!wrap) return;
+                    
+                    var opened = wrap.classList.contains('open');
+                    
+                    // Close all dropdowns
+                    document.querySelectorAll('.select.open').forEach(function(openSelect) {
+                        openSelect.classList.remove('open');
+                    });
+                    
+                    // Open this one if it wasn't open
+                    if (!opened) {
+                        wrap.classList.add('open');
+                        console.log('Opened select');
+                    }
+                }, false);
+                
+                // Add events to menu items
+                var newItems = select.querySelectorAll('.sel-item');
+                newItems.forEach(function(item) {
+                    item.addEventListener('click', function(ev) {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        
+                        console.log('Selected item:', ev.target.textContent);
+                        
+                        // Update button text
+                        var text = ev.target.textContent || ev.target.innerText;
+                        btn.innerHTML = text + '<span class="sel-arrow">▾</span>';
+                        
+                        // Close dropdown
+                        select.classList.remove('open');
+                        
+                        // Trigger change event
+                        var selectId = select.getAttribute('data-select-id');
+                        var value = ev.target.getAttribute('data-value') || text;
+                        
+                        if (selectId && window.DashboardState) {
+                            window.DashboardState.setFilter(selectId, value);
+                        }
+                        
+                    }, false);
+                });
+            });
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.select')) {
+                    document.querySelectorAll('.select.open').forEach(function(openSelect) {
+                        openSelect.classList.remove('open');
+                    });
+                }
+            }, false);
         }
     };
     
@@ -954,13 +1096,5 @@ window.SelectLite = (function() {
     };
 })();
 
-// Auto-initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { 
-        if (window.SelectLite) {
-            window.SelectLite.initialize(); 
-        }
-    }, false);
-} else if (window.SelectLite) {
-    window.SelectLite.initialize();
-}
+// SelectLite will be initialized by UIBindings.initialize()
+// No need for duplicate initialization here
