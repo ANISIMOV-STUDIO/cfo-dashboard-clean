@@ -41,56 +41,72 @@
     </div>
     <div id="alerts-container" aria-live="polite"></div>
     <div class="filters">
-      <div class="preset-group" role="tablist" aria-label="Быстрый период">
-        <button class="preset-btn active" data-preset="month">Месяц</button>
-        <button class="preset-btn" data-preset="quarter">Квартал</button>
-        <button class="preset-btn" data-preset="year">Год</button>
+      <!-- Ряд 1: Пресеты периода -->
+      <div class="filters-row-1">
+        <div class="preset-group" role="tablist" aria-label="Быстрый период">
+          <button class="preset-btn active" data-preset="month">Месяц</button>
+          <button class="preset-btn" data-preset="quarter">Квартал</button>
+          <button class="preset-btn" data-preset="year">Год</button>
+        </div>
       </div>
       
-      <div class="select" data-select-id="companyId">
-        <button class="sel-btn">ООО Прогресс<span class="sel-arrow">▾</span></button>
-        <ul class="sel-menu" role="listbox">
-          <li class="sel-item" data-value="all">Все компании</li>
-          <li class="sel-item" data-value="progress">ООО Прогресс</li>
-        </ul>
-      </div>
-      
-      <div class="select" data-select-id="divisionId">
-        <button class="sel-btn">Все обособки<span class="sel-arrow">▾</span></button>
-        <ul class="sel-menu" role="listbox">
-          <li class="sel-item" data-value="all">Все обособки</li>
-          <li class="sel-item" data-value="center">Центр</li>
-          <li class="sel-item" data-value="south">Юг</li>
-          <li class="sel-item" data-value="north">Север</li>
-          <li class="sel-item" data-value="east">Восток</li>
-        </ul>
-      </div>
-      
-      <div class="select" data-select-id="managerId">
-        <button class="sel-btn">Все менеджеры<span class="sel-arrow">▾</span></button>
-        <ul class="sel-menu" role="listbox">
-          <li class="sel-item" data-value="all">Все менеджеры</li>
-          <li class="sel-item" data-value="ivanov">Иванов И.И.</li>
-          <li class="sel-item" data-value="sidorov">Сидоров С.С.</li>
-          <li class="sel-item" data-value="kozlov">Козлов К.К.</li>
-        </ul>
-      </div>
-      
-      <div class="select" data-select-id="mode">
-        <button class="sel-btn">Абсолютные<span class="sel-arrow">▾</span></button>
-        <ul class="sel-menu" role="listbox">
-          <li class="sel-item" data-value="absolute">Абсолютные</li>
-          <li class="sel-item" data-value="percentage">Доли (100%)</li>
-        </ul>
-      </div>
-      
-      <div class="select" data-select-id="compare">
-        <button class="sel-btn">К пред. году<span class="sel-arrow">▾</span></button>
-        <ul class="sel-menu" role="listbox">
-          <li class="sel-item" data-value="none">Без сравнения</li>
-          <li class="sel-item" data-value="prevYear">К пред. году</li>
-          <li class="sel-item" data-value="plan">К плану</li>
-        </ul>
+      <!-- Ряд 2: Селекты фильтров -->
+      <div class="filters-row-2">
+        <div class="select" data-select-id="companyId">
+          <button class="sel-btn">ООО Прогресс<span class="sel-arrow">▾</span></button>
+          <ul class="sel-menu" role="listbox">
+            <li class="sel-item" data-value="all">Все компании</li>
+            <li class="sel-item" data-value="progress">ООО Прогресс</li>
+          </ul>
+        </div>
+        
+        <div class="select" data-select-id="divisionId">
+          <button class="sel-btn">Все обособки<span class="sel-arrow">▾</span></button>
+          <ul class="sel-menu" role="listbox">
+            <li class="sel-item" data-value="all">Все обособки</li>
+            <li class="sel-item" data-value="center">Центр</li>
+            <li class="sel-item" data-value="south">Юг</li>
+            <li class="sel-item" data-value="north">Север</li>
+            <li class="sel-item" data-value="east">Восток</li>
+          </ul>
+        </div>
+        
+        <div class="select" data-select-id="managerId">
+          <button class="sel-btn">Все менеджеры<span class="sel-arrow">▾</span></button>
+          <ul class="sel-menu" role="listbox">
+            <li class="sel-item" data-value="all">Все менеджеры</li>
+            <li class="sel-item" data-value="ivanov">Иванов И.И.</li>
+            <li class="sel-item" data-value="sidorov">Сидоров С.С.</li>
+            <li class="sel-item" data-value="kozlov">Козлов К.К.</li>
+          </ul>
+        </div>
+        
+        <div class="select" data-select-id="counterpartyId">
+          <button class="sel-btn">Все контрагенты<span class="sel-arrow">▾</span></button>
+          <ul class="sel-menu" role="listbox">
+            <li class="sel-item" data-value="all">Все контрагенты</li>
+            <li class="sel-item" data-value="client1">Клиент А</li>
+            <li class="sel-item" data-value="client2">Клиент Б</li>
+            <li class="sel-item" data-value="client3">Клиент В</li>
+          </ul>
+        </div>
+        
+        <div class="select" data-select-id="units">
+          <button class="sel-btn">Абсолютные<span class="sel-arrow">▾</span></button>
+          <ul class="sel-menu" role="listbox">
+            <li class="sel-item" data-value="absolute">Абсолютные</li>
+            <li class="sel-item" data-value="percentage">Доли (100%)</li>
+          </ul>
+        </div>
+        
+        <div class="select" data-select-id="compareMode">
+          <button class="sel-btn">Нет<span class="sel-arrow">▾</span></button>
+          <ul class="sel-menu" role="listbox">
+            <li class="sel-item" data-value="none">Нет</li>
+            <li class="sel-item" data-value="prevYear">К пред. году</li>
+            <li class="sel-item" data-value="plan">К плану</li>
+          </ul>
+        </div>
       </div>
       
       <div class="interaction-status">
@@ -149,6 +165,13 @@
             <div class="card-header">
               <div class="card-title">Движение ДС (Waterfall), млн ₽</div>
               <div class="card-subtle">Opening → OCF → ICF → FCF → Closing</div>
+              <div class="chart-controls">
+                <div class="zoom-controls" data-chart-id="cashflow-chart">
+                  <button class="zoom-btn zoom-out" title="Уменьшить масштаб">−</button>
+                  <button class="zoom-btn zoom-in" title="Увеличить масштаб">+</button>
+                  <button class="zoom-btn zoom-reset" title="Сбросить масштаб">⟲</button>
+                </div>
+              </div>
             </div>
             <div class="chart-body">
               <canvas id="cashflow-chart" data-lazy="chart"></canvas>
@@ -158,6 +181,13 @@
             <div class="card-header">
               <div class="card-title">План vs Факт (Variance), млн ₽</div>
               <div class="card-subtle">Revenue · COGS · Gross · OPEX · EBITDA</div>
+              <div class="chart-controls">
+                <div class="zoom-controls" data-chart-id="variance-chart">
+                  <button class="zoom-btn zoom-out" title="Уменьшить масштаб">−</button>
+                  <button class="zoom-btn zoom-in" title="Увеличить масштаб">+</button>
+                  <button class="zoom-btn zoom-reset" title="Сбросить масштаб">⟲</button>
+                </div>
+              </div>
             </div>
             <div class="chart-body">
               <canvas id="variance-chart" data-lazy="chart"></canvas>

@@ -72,15 +72,67 @@ body {
   position: relative;
 }
 
-/* macOS Header */
-.header { 
-  height: 56px !important; 
-  display: flex !important; 
-  align-items: center !important; 
-  justify-content: space-between !important; 
+/* Жёсткая сетка шапки - фиксированные высоты */
+.header {
+  height: 56px !important;
   padding: 0 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.kpi-row {
+  height: 96px !important;
+  padding: 0 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 24px !important;
   flex-shrink: 0 !important;
 }
+
+.filters {
+  height: 56px !important;
+  padding: 0 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  border-bottom: 1px solid var(--border) !important;
+  gap: 8px !important;
+}
+
+/* Фильтры в два ряда */
+.filters-row-1 {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.filters-row-2 {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 16px !important;
+}
+
+main {
+  flex: 1 !important;
+  overflow: hidden !important;
+  padding: 24px !important;
+}
+
+.footer-tabs {
+  height: 36px !important;
+  padding: 0 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  border-top: 1px solid var(--border) !important;
+}
+
+/* Header уже настроен выше в жёсткой сетке */
 
 .h-title {
   font: 700 24px/1.2 -apple-system, system-ui !important;
@@ -253,8 +305,13 @@ main {
 }
 
 .sel-item:hover,
-.sel-item[aria-selected="true"] {
+.sel-item[aria-selected="true"],
+.sel-item.focused {
   background: #F2F8FF !important;
+}
+
+.sel-item.focused {
+  outline: 1px solid var(--accent) !important;
 }
 
 .select.open .sel-menu {

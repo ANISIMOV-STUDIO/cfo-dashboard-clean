@@ -16,6 +16,7 @@
             this.bindGlobalEvents();
             this.setupChartClickHandlers();
             this.initializeZoomControls();
+            this.bindAllZoomControls(); // Bind HTML-based zoom controls
         },
         
         // Bind global keyboard shortcuts and events
@@ -339,10 +340,61 @@
             });
         },
         
+        // Bind zoom controls for HTML-based zoom buttons
+        bindAllZoomControls: function() {
+            var self = this;
+            
+            // Use event delegation to handle all zoom controls
+            document.addEventListener('click', function(event) {
+                var target = event.target;
+                
+                // Check if clicked element is a zoom button
+                if (target.classList.contains('zoom-btn')) {
+                    event.preventDefault();
+                    
+                    // Get chart ID from the parent zoom-controls container
+                    var zoomControls = target.closest('.zoom-controls');
+                    if (!zoomControls) return;
+                    
+                    var chartId = zoomControls.getAttribute('data-chart-id');
+                    if (!chartId) return;
+                    
+                    // Handle different zoom actions
+                    if (target.classList.contains('zoom-in')) {
+                        self.zoomIn(chartId);
+                    } else if (target.classList.contains('zoom-out')) {
+                        self.zoomOut(chartId);
+                    } else if (target.classList.contains('zoom-reset')) {
+                        self.resetZoom(chartId);
+                    }
+                }
+            });
+        },
+        
+        // Get chart instance from canvas - Chart.js 2.9.4 compatibility
+        getChartInstance: function(canvas) {
+            // Try different ways to get chart instance
+            if (canvas.chart) return canvas.chart;
+            
+            // Search in Chart.instances (Chart.js 2.9.4)
+            if (typeof Chart !== 'undefined' && Chart.instances) {
+                for (var i = 0; i < Chart.instances.length; i++) {
+                    if (Chart.instances[i].canvas === canvas) {
+                        return Chart.instances[i];
+                    }
+                }
+            }
+            
+            return null;
+        },
+        
         // Zoom in on chart
         zoomIn: function(chartId) {
             var canvas = document.getElementById(chartId);
-            var chart = canvas.chart;
+            if (!canvas) return;
+            
+            // Find chart instance - Chart.js 2.9.4 compatibility
+            var chart = canvas.chart || this.getChartInstance(canvas);
             if (!chart) return;
             
             // Store zoom state
@@ -357,7 +409,9 @@
         // Zoom out on chart
         zoomOut: function(chartId) {
             var canvas = document.getElementById(chartId);
-            var chart = canvas.chart;
+            if (!canvas) return;
+            
+            var chart = canvas.chart || this.getChartInstance(canvas);
             if (!chart) return;
             
             if (!this.zoomStates[chartId]) return;
@@ -369,7 +423,9 @@
         // Reset zoom on chart
         resetZoom: function(chartId) {
             var canvas = document.getElementById(chartId);
-            var chart = canvas.chart;
+            if (!canvas) return;
+            
+            var chart = canvas.chart || this.getChartInstance(canvas);
             if (!chart) return;
             
             delete this.zoomStates[chartId];

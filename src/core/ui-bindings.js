@@ -589,6 +589,48 @@ window.SelectLite = (function() {
             
             if (!opened) {
                 wrap.classList.add('open');
+                adjustMenuPosition(wrap); // Ensure proper positioning
+                setFocusedItem(wrap, 0); // Focus first item
+            }
+        }, false);
+        
+        // Keyboard navigation
+        btn.addEventListener('keydown', function(e) {
+            var wrap = e.target.closest('.select');
+            if (!wrap) return;
+            
+            switch(e.key) {
+                case 'ArrowDown':
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (!wrap.classList.contains('open')) {
+                        wrap.classList.add('open');
+                        adjustMenuPosition(wrap); // Ensure proper positioning
+                        setFocusedItem(wrap, 0);
+                    } else {
+                        var direction = e.key === 'ArrowDown' ? 1 : -1;
+                        moveFocus(wrap, direction);
+                    }
+                    break;
+                case 'Enter':
+                case ' ':
+                    e.preventDefault();
+                    if (wrap.classList.contains('open')) {
+                        var focusedItem = wrap.querySelector('.sel-item.focused');
+                        if (focusedItem) {
+                            focusedItem.click();
+                        }
+                    } else {
+                        wrap.classList.add('open');
+                        adjustMenuPosition(wrap); // Ensure proper positioning
+                        setFocusedItem(wrap, 0);
+                    }
+                    break;
+                case 'Escape':
+                    e.preventDefault();
+                    closeAll();
+                    btn.focus();
+                    break;
             }
         }, false);
         
@@ -641,7 +683,102 @@ window.SelectLite = (function() {
     function closeAll() { 
         var opened = document.querySelectorAll('.select.open'); 
         for (var k = 0; k < opened.length; k++) {
-            opened[k].classList.remove('open'); 
+            opened[k].classList.remove('open');
+            // Clear focused state
+            var focusedItems = opened[k].querySelectorAll('.sel-item.focused');
+            for (var i = 0; i < focusedItems.length; i++) {
+                focusedItems[i].classList.remove('focused');
+            }
+        }
+    }
+    
+    // Set focused item by index
+    function setFocusedItem(wrap, index) {
+        var items = wrap.querySelectorAll('.sel-item');
+        
+        // Clear all focused states
+        for (var i = 0; i < items.length; i++) {
+            items[i].classList.remove('focused');
+        }
+        
+        // Set focused state
+        if (items[index]) {
+            items[index].classList.add('focused');
+        }
+    }
+    
+    // Move focus up or down
+    function moveFocus(wrap, direction) {
+        var items = wrap.querySelectorAll('.sel-item');
+        var focusedItem = wrap.querySelector('.sel-item.focused');
+        var currentIndex = -1;
+        
+        // Find current focused index
+        for (var i = 0; i < items.length; i++) {
+            if (items[i] === focusedItem) {
+                currentIndex = i;
+                break;
+            }
+        }
+        
+        // Calculate new index
+        var newIndex = currentIndex + direction;
+        if (newIndex < 0) newIndex = items.length - 1;
+        if (newIndex >= items.length) newIndex = 0;
+        
+        setFocusedItem(wrap, newIndex);
+    }
+    
+    // Adjust menu position to handle scaled containers
+    function adjustMenuPosition(wrap) {
+        var menu = wrap.querySelector('.sel-menu');
+        if (!menu) return;
+        
+        // Get the button and container rects
+        var btn = wrap.querySelector('.sel-btn');
+        var btnRect = btn.getBoundingClientRect();
+        var wrapRect = wrap.getBoundingClientRect();
+        
+        // Check if we're inside a scaled container
+        var scaledContainer = wrap.closest('[style*="transform"]') || wrap.closest('.main-content');
+        
+        // Calculate viewport boundaries
+        var viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        var menuHeight = 280; // max-height from CSS
+        var spaceBelow = viewportHeight - btnRect.bottom;
+        var spaceAbove = btnRect.top;
+        
+        // Reset menu positioning
+        menu.style.top = '';
+        menu.style.bottom = '';
+        menu.style.maxHeight = '';
+        
+        // Position menu below button if there's enough space, otherwise above
+        if (spaceBelow >= menuHeight || spaceBelow >= spaceAbove) {
+            // Position below
+            menu.style.top = '40px';
+            if (spaceBelow < menuHeight) {
+                menu.style.maxHeight = Math.max(120, spaceBelow - 20) + 'px';
+            }
+        } else {
+            // Position above
+            menu.style.bottom = '40px';
+            menu.style.top = 'auto';
+            if (spaceAbove < menuHeight) {
+                menu.style.maxHeight = Math.max(120, spaceAbove - 20) + 'px';
+            }
+        }
+        
+        // Handle horizontal positioning for edge cases
+        var spaceRight = window.innerWidth - btnRect.right;
+        var menuWidth = 220; // min-width from CSS
+        
+        if (spaceRight < menuWidth) {
+            menu.style.left = 'auto';
+            menu.style.right = '0';
+        } else {
+            menu.style.left = '0';
+            menu.style.right = 'auto';
         }
     }
     

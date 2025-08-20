@@ -15,12 +15,12 @@
             periodPreset: 'month',    // 'month'|'quarter'|'year'
             dateFrom: null, 
             dateTo: null,
-            companyId: 'all',         // все|progress|другие
+            companyId: 'progress',    // все|progress|другие
             divisionId: 'all',        // обособка/филиал
             managerId: 'all',         // менеджер
             counterpartyId: 'all',    // контрагент
-            mode: 'absolute',         // 'absolute'|'percentage'
-            compare: 'prevYear'       // 'none'|'prevYear'|'plan'
+            units: 'absolute',        // 'absolute'|'percentage'
+            compareMode: 'none'       // 'none'|'prevYear'|'plan'
         },
         
         // Zoom state - per-chart zoom windows
@@ -276,15 +276,90 @@
             window.dispatchEvent(event);
         },
         
-        // Share mode management (для отображения в абсолютах vs процентах)
-        toggleShareMode: function() {
-            var newMode = this.filters.mode === 'absolute' ? 'percentage' : 'absolute';
-            this.setFilter('mode', newMode);
+        // Units mode management (для отображения в абсолютах vs процентах)
+        toggleUnitsMode: function() {
+            var newMode = this.filters.units === 'absolute' ? 'percentage' : 'absolute';
+            this.setFilter('units', newMode);
+        },
+        
+        // Initialize UI controls with current state
+        initializeUI: function() {
+            var self = this;
+            
+            // Wait for DOM and SelectLite to be ready
+            setTimeout(function() {
+                self.updateSelectsFromState();
+                self.updatePresetsFromState();
+            }, 100);
+        },
+        
+        // Update all selects to match current state
+        updateSelectsFromState: function() {
+            var filters = this.filters;
+            
+            for (var filterId in filters) {
+                if (filters.hasOwnProperty(filterId)) {
+                    this.updateSelectUI(filterId, filters[filterId]);
+                }
+            }
+        },
+        
+        // Update specific select UI
+        updateSelectUI: function(selectId, value) {
+            var selectEl = document.querySelector('.select[data-select-id="' + selectId + '"]');
+            if (!selectEl) return;
+            
+            var option = selectEl.querySelector('.sel-item[data-value="' + value + '"]');
+            var button = selectEl.querySelector('.sel-btn');
+            
+            if (option && button) {
+                var text = option.textContent || option.innerText;
+                button.innerHTML = text + '<span class="sel-arrow">▾</span>';
+            }
+        },
+        
+        // Update preset buttons to match current state
+        updatePresetsFromState: function() {
+            var activePreset = this.filters.periodPreset;
+            var presetBtns = document.querySelectorAll('.preset-btn');
+            
+            presetBtns.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-preset') === activePreset) {
+                    btn.classList.add('active');
+                }
+            });
+        },
+        
+        // Debug function to log current state
+        logCurrentState: function() {
+            console.log('Current DashboardState:', {
+                page: this.currentPage,
+                filters: this.filters,
+                ui: this.ui
+            });
         }
     };
     
     // Initialize state on load
     DashboardState.loadState();
+    
+    // Initialize UI when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            DashboardState.initializeUI();
+        });
+    } else {
+        DashboardState.initializeUI();
+    }
+    
+    // Add debug listener for filter changes
+    window.addEventListener('filtersChanged', function(event) {
+        if (event.detail) {
+            console.log('Filter changed:', event.detail.key + ' = ' + event.detail.value);
+            console.log('All filters:', event.detail.filters);
+        }
+    });
     
     // Export to window for global access
     window.DashboardState = DashboardState;

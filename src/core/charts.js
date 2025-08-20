@@ -20,11 +20,269 @@
             gridLines: 'rgba(17,24,39,0.08)'
         },
         
+        // Unified readability settings for all charts
+        readability: {
+            // Font settings
+            fontSize: {
+                axis: 16,
+                tooltip: {
+                    title: 16,
+                    body: 15
+                },
+                legend: 14,
+                title: 18
+            },
+            fontColor: {
+                primary: '#374151',
+                secondary: '#6B7280',
+                inverse: '#FFFFFF'
+            },
+            // Spacing and dimensions
+            spacing: {
+                tooltipPadding: { x: 12, y: 10 },
+                chartPadding: 20,
+                axisPadding: 10
+            },
+            // Animation settings
+            animation: {
+                duration: 200,
+                easing: 'easeOutQuart'
+            }
+        },
+        
+        // Helper methods for applying unified settings
+        applyReadabilityToAxis: function(axisConfig) {
+            if (!axisConfig.ticks) axisConfig.ticks = {};
+            axisConfig.ticks.fontSize = this.readability.fontSize.axis;
+            axisConfig.ticks.fontColor = this.readability.fontColor.primary;
+            return axisConfig;
+        },
+        
+        applyReadabilityToTooltips: function(tooltipConfig) {
+            tooltipConfig.titleFontSize = this.readability.fontSize.tooltip.title;
+            tooltipConfig.bodyFontSize = this.readability.fontSize.tooltip.body;
+            tooltipConfig.xPadding = this.readability.spacing.tooltipPadding.x;
+            tooltipConfig.yPadding = this.readability.spacing.tooltipPadding.y;
+            return tooltipConfig;
+        },
+        
+        getReadabilitySettings: function() {
+            return this.readability;
+        },
+        
+        // Update readability settings - allows runtime configuration
+        updateReadabilitySettings: function(newSettings) {
+            if (!newSettings || typeof newSettings !== 'object') return;
+            
+            // Deep merge new settings with existing ones
+            if (newSettings.fontSize) {
+                Object.assign(this.readability.fontSize, newSettings.fontSize);
+            }
+            if (newSettings.fontColor) {
+                Object.assign(this.readability.fontColor, newSettings.fontColor);
+            }
+            if (newSettings.spacing) {
+                Object.assign(this.readability.spacing, newSettings.spacing);
+            }
+            if (newSettings.animation) {
+                Object.assign(this.readability.animation, newSettings.animation);
+            }
+            
+            // Trigger event for components to update
+            if (window.DashboardState) {
+                window.DashboardState.triggerEvent('readabilityChanged', this.readability);
+            }
+        },
+        
+        // Apply unified readability settings to chart configuration
+        applyUnifiedReadability: function(config) {
+            if (!config.options) config.options = {};
+            
+            // Apply animation settings
+            if (!config.options.animation) config.options.animation = {};
+            config.options.animation.duration = this.readability.animation.duration;
+            config.options.animation.easing = this.readability.animation.easing;
+            
+            // Apply tooltip settings
+            if (!config.options.tooltips) config.options.tooltips = {};
+            config.options.tooltips.titleFontSize = this.readability.fontSize.tooltip.title;
+            config.options.tooltips.bodyFontSize = this.readability.fontSize.tooltip.body;
+            config.options.tooltips.xPadding = this.readability.spacing.tooltipPadding.x;
+            config.options.tooltips.yPadding = this.readability.spacing.tooltipPadding.y;
+            
+            // Apply scale settings
+            if (!config.options.scales) config.options.scales = {};
+            
+            // Apply to xAxes
+            if (config.options.scales.xAxes) {
+                for (var i = 0; i < config.options.scales.xAxes.length; i++) {
+                    if (!config.options.scales.xAxes[i].ticks) config.options.scales.xAxes[i].ticks = {};
+                    config.options.scales.xAxes[i].ticks.fontSize = this.readability.fontSize.axis;
+                    config.options.scales.xAxes[i].ticks.fontColor = this.readability.fontColor.primary;
+                }
+            }
+            
+            // Apply to yAxes
+            if (config.options.scales.yAxes) {
+                for (var j = 0; j < config.options.scales.yAxes.length; j++) {
+                    if (!config.options.scales.yAxes[j].ticks) config.options.scales.yAxes[j].ticks = {};
+                    config.options.scales.yAxes[j].ticks.fontSize = this.readability.fontSize.axis;
+                    config.options.scales.yAxes[j].ticks.fontColor = this.readability.fontColor.primary;
+                }
+            }
+            
+            return config;
+        },
+        
+        // Enable and configure chart legend with readability settings
+        enableLegend: function(config, position) {
+            if (!config.options) config.options = {};
+            
+            position = position || 'bottom';
+            
+            config.options.legend = {
+                display: true,
+                position: position,
+                labels: {
+                    fontSize: this.readability.fontSize.legend,
+                    fontColor: this.readability.fontColor.primary,
+                    padding: 20,
+                    usePointStyle: true,
+                    pointStyleWidth: 18
+                }
+            };
+            
+            return config;
+        },
+        
+        // Create datasets based on comparison mode and available data
+        createDatasetsWithComparison: function(data, compareMode) {
+            var datasets = [];
+            compareMode = compareMode || 'none';
+            
+            // Always include fact data if available
+            if (data.fact && Array.isArray(data.fact)) {
+                datasets.push({
+                    label: 'Факт',
+                    data: data.fact.filter(function(v) { return v !== null && v !== undefined; }),
+                    borderColor: this.colors.fact,
+                    backgroundColor: this.colors.fact + '20',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1
+                });
+            }
+            
+            // Add comparison datasets based on mode
+            if (compareMode === 'prevYear' && data.prevYear && Array.isArray(data.prevYear)) {
+                datasets.push({
+                    label: 'Прошлый год',
+                    data: data.prevYear.filter(function(v) { return v !== null && v !== undefined; }),
+                    borderColor: this.colors.prevYear,
+                    backgroundColor: this.colors.prevYear + '20',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    fill: false,
+                    tension: 0.1
+                });
+            } else if (compareMode === 'plan' && data.plan && Array.isArray(data.plan)) {
+                datasets.push({
+                    label: 'План',
+                    data: data.plan.filter(function(v) { return v !== null && v !== undefined; }),
+                    borderColor: this.colors.plan,
+                    backgroundColor: this.colors.plan + '20',
+                    borderWidth: 2,
+                    borderDash: [3, 3],
+                    fill: false,
+                    tension: 0.1
+                });
+            }
+            
+            // Add forecast if available (independent of comparison mode)
+            if (data.forecast && data.forecastDates) {
+                var forecastData = new Array(data.dates ? data.dates.length : 0).fill(null);
+                // Add forecast points starting from last actual date
+                data.forecast.forEach(function(val, idx) {
+                    if (idx < forecastData.length && data.dates) {
+                        forecastData[data.dates.length - 1 + idx] = val;
+                    }
+                });
+                
+                datasets.push({
+                    label: 'Прогноз',
+                    data: forecastData,
+                    borderColor: this.colors.forecast,
+                    backgroundColor: this.colors.forecast + '20',
+                    borderWidth: 2,
+                    borderDash: [2, 2],
+                    fill: false,
+                    tension: 0.1
+                });
+            }
+            
+            return datasets;
+        },
+        
+        // Update all charts when comparison mode changes
+        updateChartsForComparison: function(compareMode) {
+            // Get all chart instances
+            if (typeof Chart !== 'undefined' && Chart.instances) {
+                for (var i = 0; i < Chart.instances.length; i++) {
+                    var chartInstance = Chart.instances[i];
+                    var canvas = chartInstance.canvas;
+                    var chartId = canvas.id;
+                    
+                    // Skip if this is not a line chart or doesn't support comparisons
+                    if (chartInstance.config.type !== 'line') continue;
+                    
+                    // Get original data from canvas data attribute or global data store
+                    var originalData = this.getOriginalDataForChart(chartId);
+                    if (!originalData) continue;
+                    
+                    // Recreate datasets with new comparison mode
+                    var newDatasets = this.createDatasetsWithComparison(originalData, compareMode);
+                    
+                    // Update chart data
+                    chartInstance.data.datasets = newDatasets;
+                    
+                    // Update legend visibility
+                    if (newDatasets.length > 1) {
+                        chartInstance.options.legend = {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                fontSize: this.readability.fontSize.legend,
+                                fontColor: this.readability.fontColor.primary,
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyleWidth: 18
+                            }
+                        };
+                    } else {
+                        chartInstance.options.legend.display = false;
+                    }
+                    
+                    // Update the chart
+                    chartInstance.update();
+                }
+            }
+        },
+        
+        // Get original data for a chart (placeholder - would need implementation)
+        getOriginalDataForChart: function(chartId) {
+            // This would need to be connected to your data management system
+            // For now, return null - this would be implemented based on your data architecture
+            return null;
+        },
+        
         // Default chart options optimized for v8webkit - ES5 compatible
         defaultOptions: {
             responsive: false,
             maintainAspectRatio: false,
-            animation: { duration: 200 },
+            animation: { 
+                duration: 200,  // Using readability.animation.duration
+                easing: 'easeOutQuart'
+            },
             legend: { display: false },
             
             // Disable ALL plugins and zoom/pan functionality
@@ -39,12 +297,12 @@
                 mode: 'index',
                 intersect: false,
                 backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                titleFontSize: 16,
-                bodyFontSize: 15,
+                titleFontSize: 16,  // readability.fontSize.tooltip.title
+                bodyFontSize: 15,   // readability.fontSize.tooltip.body
                 cornerRadius: 8,
                 displayColors: true,
-                xPadding: 12,
-                yPadding: 10,
+                xPadding: 12,       // readability.spacing.tooltipPadding.x
+                yPadding: 10,       // readability.spacing.tooltipPadding.y
                 callbacks: {
                     title: function(tooltipItem, data) {
                         return tooltipItem[0].label || '';
@@ -69,8 +327,8 @@
                         drawOnChartArea: false
                     },
                     ticks: {
-                        fontSize: 16,
-                        fontColor: '#374151'
+                        fontSize: 16,        // readability.fontSize.axis
+                        fontColor: '#374151' // readability.fontColor.primary
                     }
                 }],
                 yAxes: [{
@@ -80,8 +338,8 @@
                         drawBorder: false
                     },
                     ticks: {
-                        fontSize: 16,
-                        fontColor: '#374151',
+                        fontSize: 16,        // readability.fontSize.axis
+                        fontColor: '#374151', // readability.fontColor.primary
                         maxTicksLimit: 6,
                         callback: function(value) {
                             return window.formatMoney ? window.formatMoney(value, 'RUB', 0) : value;
@@ -149,6 +407,9 @@
                 }, data.options || {})
             };
             
+            // Apply unified readability settings
+            this.applyUnifiedReadability(config);
+            
             return new Chart(canvas, config);
         },
         
@@ -165,69 +426,14 @@
             
             this.ensureCanvasSize(canvas);
             
-            var datasets = [];
-            
-            // Fact data
-            if (data.fact && Array.isArray(data.fact)) {
-                datasets.push({
-                    label: 'Факт',
-                    data: data.fact.filter(function(v) { return v !== null && v !== undefined; }),
-                    borderColor: this.colors.fact,
-                    backgroundColor: this.colors.fact + '20',
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.1
-                });
+            // Get current comparison mode from state
+            var compareMode = 'none';
+            if (window.DashboardState) {
+                compareMode = window.DashboardState.getFilter('compareMode') || 'none';
             }
             
-            // Plan data
-            if (data.plan && Array.isArray(data.plan)) {
-                datasets.push({
-                    label: 'План',
-                    data: data.plan.filter(function(v) { return v !== null && v !== undefined; }),
-                    borderColor: this.colors.plan,
-                    backgroundColor: this.colors.plan + '20',
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    fill: false,
-                    tension: 0.1
-                });
-            }
-            
-            // Previous year
-            if (data.prevYear && Array.isArray(data.prevYear)) {
-                datasets.push({
-                    label: 'Прошлый год',
-                    data: data.prevYear.filter(function(v) { return v !== null && v !== undefined; }),
-                    borderColor: this.colors.prevYear,
-                    backgroundColor: this.colors.prevYear + '20',
-                    borderWidth: 1,
-                    fill: false,
-                    tension: 0.1
-                });
-            }
-            
-            // Forecast
-            if (data.forecast && data.forecastDates) {
-                var forecastData = new Array(data.dates.length).fill(null);
-                // Add forecast points starting from last actual date
-                data.forecast.forEach(function(val, idx) {
-                    if (idx < forecastData.length) {
-                        forecastData[data.dates.length - 1 + idx] = val;
-                    }
-                });
-                
-                datasets.push({
-                    label: 'Прогноз',
-                    data: forecastData,
-                    borderColor: this.colors.forecast,
-                    backgroundColor: this.colors.forecast + '20',
-                    borderWidth: 2,
-                    borderDash: [3, 3],
-                    fill: false,
-                    tension: 0.1
-                });
-            }
+            // Create datasets using the unified comparison system
+            var datasets = this.createDatasetsWithComparison(data, compareMode);
             
             // Ensure we have valid labels and datasets
             var labels = data.dates || data.labels || [];
@@ -255,6 +461,14 @@
                 },
                 options: this.mergeOptions(this.defaultOptions, data.options || {})
             };
+            
+            // Apply unified readability settings
+            this.applyUnifiedReadability(config);
+            
+            // Enable legend if there are multiple datasets (comparison active)
+            if (datasets.length > 1) {
+                this.enableLegend(config, 'bottom');
+            }
             
             return new Chart(canvas, config);
         },
@@ -299,6 +513,9 @@
                 },
                 options: this.mergeOptions(this.defaultOptions, data.options || {})
             };
+            
+            // Apply unified readability settings
+            this.applyUnifiedReadability(config);
             
             return new Chart(canvas, config);
         },
@@ -347,6 +564,9 @@
                     }
                 })
             };
+            
+            // Apply unified readability settings
+            this.applyUnifiedReadability(config);
             
             return new Chart(canvas, config);
         },
@@ -742,6 +962,18 @@
                     }
                 });
             }
+        },
+        
+        // Initialize comparison mode event listeners
+        initializeComparisonListeners: function() {
+            var self = this;
+            
+            // Listen for comparison mode changes from DashboardState
+            window.addEventListener('filtersChanged', function(event) {
+                if (event.detail && event.detail.key === 'compareMode') {
+                    self.updateChartsForComparison(event.detail.value);
+                }
+            });
         }
     };
     
@@ -750,6 +982,9 @@
     
     // Disable zoom/pan plugins on initialization
     ChartFactory.disableZoomPan();
+    
+    // Initialize comparison mode listeners
+    ChartFactory.initializeComparisonListeners();
     
     // Export to window for global access
     window.ChartFactory = ChartFactory;
