@@ -5,206 +5,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CFO Dashboard</title>
-  <style>
-    :root {
-      --bg: linear-gradient(135deg, #f5f5f7 0%, #eff3f6 100%);
-      --panel: #ffffff;
-      --text: #111827;
-      --muted: #6B7280;
-      --accent: #0A84FF;
-      --accent-hover: #2563EB;
-      --shadow: 0 2px 20px rgba(0,0,0,0.06);
-      --shadow-hover: 0 8px 32px rgba(0,0,0,0.12);
-      --radius: 16px;
-      --border: #e5e7eb;
-    }
-    html,body { height:100%; overflow:hidden; }
-    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-      color:var(--text); background:var(--bg); -webkit-font-smoothing:antialiased; font-weight:400; line-height:1.4; font-size:14px; }
-    .dashboard { 
-      width:1360px; 
-      height:860px; 
-      margin:0 auto; 
-      padding:24px; 
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
-    }
-    .dashboard-header { 
-      height:56px; 
-      display:flex; 
-      align-items:center; 
-      justify-content:space-between; 
-      flex-shrink:0;
-    }
-    .header-left { flex-shrink: 0; }
-    .kpi-row { 
-      height:96px; 
-      display:flex; 
-      gap:12px; 
-      margin-bottom:12px;
-      flex-shrink:0;
-    }
-    .kpi-card { 
-      flex:1 0 0; 
-      background:var(--panel); 
-      border-radius:var(--radius); 
-      padding:12px 16px; 
-      box-shadow:var(--shadow); 
-      border:1px solid var(--border);
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-    }
-    .kpi-value { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 2px; line-height:1.2; }
-    .kpi-label { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
-    .kpi-change { font-size: 11px; font-weight: 500; }
-    .kpi-change.positive { color: #27ae60; }
-    .kpi-change.negative { color: #e74c3c; }
-    .kpi-change.neutral { color: var(--muted); }
-    .title { font-weight:700; font-size:24px; letter-spacing:-0.01em; }
-    .status { font-size:12px; color:var(--muted); margin-top:4px; }
-    .controls { 
-      height:64px; 
-      display:flex; 
-      align-items:end; 
-      gap:16px; 
-      flex-shrink:0;
-      padding-bottom:8px;
-    }
-    .control { display:flex; flex-direction:column; gap:6px; }
-    .control label { font-size:12px; color:var(--muted); }
-    select, .preset-group { 
-      height:40px; 
-      border-radius:12px; 
-      border:1px solid var(--border); 
-      background:var(--panel); 
-      box-shadow:var(--shadow); 
-      padding:0 16px; 
-      font-size:14px; 
-      color:var(--text); 
-      outline:none;
-      transition: all 0.2s ease;
-    }
-    select:focus, .preset-group:focus-within {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-    }
-    .preset-group { 
-      display:inline-flex; 
-      align-items:center; 
-      padding:3px; 
-      gap:2px; 
-      width:max-content; 
-    }
-    .preset-btn { 
-      border:0; 
-      height:34px; 
-      padding:0 16px; 
-      border-radius:10px; 
-      background:transparent; 
-      color:var(--text); 
-      cursor:pointer; 
-      font-size:13px;
-      font-weight:500;
-      transition: all 0.2s ease;
-    }
-    .preset-btn:hover { background:rgba(0, 122, 255, 0.1); }
-    .preset-btn.active { background:var(--accent); color:white; box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3); }
-    .page-navigation { 
-      height:36px; 
-      display:flex; 
-      align-items:center; 
-      gap:8px; 
-      flex-shrink:0;
-    }
-    .segmented { display:inline-flex; background:var(--panel); border-radius:12px; padding:3px; box-shadow:var(--shadow); border:1px solid var(--border); }
-    .segment-tab { 
-      border:0; 
-      background:transparent; 
-      padding:8px 14px; 
-      border-radius:9px; 
-      font-size:13px; 
-      font-weight:500;
-      color:var(--text); 
-      cursor:pointer; 
-      transition:all 0.2s ease;
-    }
-    .segment-tab:hover:not(.active) { background:rgba(10, 132, 255, 0.1); }
-    .segment-tab.active { 
-      background:var(--accent); 
-      color:#fff; 
-      box-shadow:0 2px 8px rgba(10, 132, 255, 0.3);
-    }
-    main { flex:1 1 0; overflow:hidden; }
-    .page-content { display:none; }
-    .page-content.active { display:block; }
-    .content-grid { 
-      display:flex; 
-      flex-wrap:wrap; 
-      gap:16px; 
-      height:100%;
-    }
-    .card { 
-      flex: 0 0 calc(50% - 8px); 
-      height:288px;
-      background:var(--panel); 
-      border-radius:var(--radius); 
-      box-shadow:var(--shadow); 
-      border: 1px solid var(--border);
-      overflow:hidden; 
-      display:flex; 
-      flex-direction:column;
-    }
-    .card .card-header { 
-      height:44px; 
-      padding:0 14px; 
-      border-bottom:1px solid #eef2f7; 
-      display:flex; 
-      align-items:center; 
-      justify-content:space-between; 
-      flex-shrink:0;
-    }
-    .card .card-title { font-size:14px; font-weight:600; }
-    .card .card-subtle { font-size:12px; color:var(--muted); }
-    .chart-body { 
-      height: calc(100% - 44px); 
-      padding:12px; 
-      overflow:hidden; 
-      display:flex;
-    }
-    .chart-body canvas { width:100% !important; height:100% !important; }
-    #alerts-container { position:fixed; right:24px; bottom:24px; z-index:100; max-width:360px; }
-    .alert { background:var(--panel); border-radius:12px; box-shadow:var(--shadow); margin-bottom:12px; border-left:4px solid #ff9500; overflow:hidden; transition:all 0.3s ease; }
-    .alert-header { display:flex; align-items:center; padding:12px; gap:8px; }
-    .alert-icon { width:20px; height:20px; display:flex; align-items:center; justify-content:center; border-radius:50%; font-size:12px; }
-    .alert-icon-critical { background:#ff3b30; color:white; }
-    .alert-icon-high { background:#ff6347; color:white; }
-    .alert-icon-medium { background:#ff9500; color:white; }
-    .alert-icon-low { background:#34c759; color:white; }
-    .alert-title { flex:1; font-weight:600; font-size:13px; }
-    .alert-severity { font-size:11px; color:var(--muted); text-transform:uppercase; }
-    .alert-dismiss { border:0; background:transparent; font-size:18px; color:var(--muted); cursor:pointer; padding:0; width:20px; height:20px; }
-    .alert-message { padding:0 12px 12px; font-size:12px; color:var(--text); }
-    .interaction-status { display: flex; align-items: center; gap: 12px; margin-left: auto; }
-    .filter-status { font-size: 12px; color: var(--muted); }
-    .reset-btn { border: none; background: var(--panel); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; box-shadow: var(--shadow); }
-    .reset-btn:hover { background: #f0f0f0; }
-    .action-btn { border: none; background: var(--panel); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; box-shadow: var(--shadow); margin-left: 8px; }
-    .action-btn:hover { background: #f0f0f0; }
-    .realtime-btn { border: none; background: var(--panel); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; box-shadow: var(--shadow); }
-    .realtime-btn.active { background: #007AFF; color: white; }
-    .realtime-btn:hover { background: #f0f0f0; }
-    .realtime-btn.active:hover { background: #0056D6; }
-    .refresh-btn { border: none; background: var(--panel); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; box-shadow: var(--shadow); }
-    .refresh-btn:hover { background: #f0f0f0; }
-
-    /* Desktop-only layout - no responsive breakpoints */
-    body { min-width: 1360px; }
-    .dashboard::-webkit-scrollbar { display: none; }
-    .content-grid::-webkit-scrollbar { display: none; }
-    .chart-body::-webkit-scrollbar { display: none; }
-  </style>
+  <link rel="stylesheet" href="theme-macos.css">
 </head>
 <body>
   <div class="dashboard">
@@ -267,6 +68,12 @@
           <option value="prev-year" selected>К пред. году</option>
         </select>
       </div>
+      <div class="interaction-status">
+        <span id="filter-indicator" class="filter-status"></span>
+        <button id="toggle-realtime-btn" class="realtime-btn active" title="Переключить авто-обновление">📡</button>
+        <button id="manual-refresh-btn" class="refresh-btn" title="Обновить данные вручную">⟳</button>
+        <button id="reset-all-btn" class="reset-btn" title="Сбросить все фильтры и масштабирование (ESC)">🔄</button>
+      </div>
     </div>
     <div class="page-navigation">
       <div class="segmented" role="tablist" aria-label="Разделы">
@@ -275,12 +82,6 @@
         <button class="segment-tab" data-page="profit">Прибыльность</button>
         <button class="segment-tab" data-page="cash">ДДС и ликвидность</button>
         <button class="segment-tab" data-page="ar">Дебиторка</button>
-      </div>
-      <div class="interaction-status">
-        <span id="filter-indicator" class="filter-status"></span>
-        <button id="toggle-realtime-btn" class="realtime-btn active" title="Переключить авто-обновление">📡</button>
-        <button id="manual-refresh-btn" class="refresh-btn" title="Обновить данные вручную">⟳</button>
-        <button id="reset-all-btn" class="reset-btn" title="Сбросить все фильтры и масштабирование (ESC)">🔄</button>
       </div>
     </div>
     <main id="pages">

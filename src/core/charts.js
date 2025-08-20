@@ -20,61 +20,57 @@
             gridLines: 'rgba(17,24,39,0.08)'
         },
         
-        // Default chart options optimized for v8webkit
+        // Default chart options optimized for v8webkit - ES5 compatible
         defaultOptions: {
-            responsive: true,
+            responsive: false,
             maintainAspectRatio: false,
             animation: { duration: 200 },
-            elements: {
-                point: { radius: 2, hitRadius: 6 },
-                line: { tension: 0.25, borderWidth: 2 }
-            },
-            interaction: {
+            legend: { display: false },
+            tooltips: {
+                mode: 'index',
                 intersect: false,
-                mode: 'index'
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleFont: { size: 12 },
-                    bodyFont: { size: 11 },
-                    cornerRadius: 6,
-                    displayColors: true,
-                    callbacks: {
-                        title: function(context) {
-                            return context[0].label || '';
-                        },
-                        label: function(context) {
-                            var value = context.parsed.y || context.parsed;
-                            return context.dataset.label + ': ' + window.formatMoney(value, 'RUB', 0);
-                        }
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleFontSize: 12,
+                bodyFontSize: 11,
+                cornerRadius: 6,
+                displayColors: true,
+                callbacks: {
+                    title: function(tooltipItem, data) {
+                        return tooltipItem[0].label || '';
+                    },
+                    label: function(tooltipItem, data) {
+                        var value = tooltipItem.yLabel || tooltipItem.value;
+                        return data.datasets[tooltipItem.datasetIndex].label + ': ' + 
+                               (window.formatMoney ? window.formatMoney(value, 'RUB', 0) : value);
                     }
                 }
             },
+            elements: {
+                point: { radius: 2, hitRadius: 6 },
+                line: { tension: 0.25 }
+            },
             scales: {
-                x: {
-                    grid: {
+                xAxes: [{
+                    gridLines: {
                         display: false
                     },
                     ticks: {
-                        font: { size: 11 }
+                        fontSize: 11
                     }
-                },
-                y: {
-                    grid: {
-                        color: 'rgba(17,24,39,0.08)'
+                }],
+                yAxes: [{
+                    gridLines: {
+                        color: 'rgba(17,24,39,0.08)',
+                        zeroLineColor: 'rgba(17,24,39,0.2)'
                     },
                     ticks: {
-                        font: { size: 11 },
-                        color: '#6B7280',
+                        fontSize: 11,
+                        fontColor: '#6B7280',
                         callback: function(value) {
                             return window.formatMoney ? window.formatMoney(value, 'RUB', 0) : value;
                         }
                     }
-                }
+                }]
             }
         },
         
@@ -99,11 +95,28 @@
                         borderRadius: 4
                     }]
                 },
-                options: Object.assign({}, this.defaultOptions, {
-                    indexAxis: 'y',
+                options: this.mergeOptions(this.defaultOptions, {
                     scales: {
-                        x: Object.assign({}, this.defaultOptions.scales.y),
-                        y: Object.assign({}, this.defaultOptions.scales.x)
+                        xAxes: [{
+                            gridLines: {
+                                color: 'rgba(17,24,39,0.08)'
+                            },
+                            ticks: {
+                                fontSize: 11,
+                                fontColor: '#6B7280',
+                                callback: function(value) {
+                                    return window.formatMoney ? window.formatMoney(value, 'RUB', 0) : value;
+                                }
+                            }
+                        }],
+                        yAxes: [{
+                            gridLines: {
+                                display: false
+                            },
+                            ticks: {
+                                fontSize: 11
+                            }
+                        }]
                     }
                 }, data.options || {})
             };
@@ -188,7 +201,7 @@
                     labels: data.dates || data.labels || [],
                     datasets: datasets
                 },
-                options: Object.assign({}, this.defaultOptions, data.options || {})
+                options: this.mergeOptions(this.defaultOptions, data.options || {})
             };
             
             return new Chart(canvas, config);
@@ -232,7 +245,7 @@
                         borderWidth: 1
                     }]
                 },
-                options: Object.assign({}, this.defaultOptions, data.options || {})
+                options: this.mergeOptions(this.defaultOptions, data.options || {})
             };
             
             return new Chart(canvas, config);
@@ -264,15 +277,13 @@
                         pointHoverRadius: 4
                     }]
                 },
-                options: Object.assign({}, this.defaultOptions, {
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { 
-                            enabled: true,
-                            callbacks: {
-                                label: function(context) {
-                                    return window.formatMoney ? window.formatMoney(context.parsed.y, 'RUB', 0) : context.parsed.y;
-                                }
+                options: this.mergeOptions(this.defaultOptions, {
+                    legend: { display: false },
+                    tooltips: { 
+                        enabled: true,
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                return window.formatMoney ? window.formatMoney(tooltipItem.yLabel, 'RUB', 0) : tooltipItem.yLabel;
                             }
                         }
                     }
@@ -339,20 +350,51 @@
         applyShareMode: function(chartInstance, mode) {
             if (!chartInstance || !chartInstance.options.scales) return;
             
-            var yScale = chartInstance.options.scales.y;
-            if (yScale && yScale.ticks && yScale.ticks.callback) {
+            var yScale = chartInstance.options.scales.yAxes && chartInstance.options.scales.yAxes[0];
+            if (yScale && yScale.ticks) {
                 if (mode === 'percentage') {
                     yScale.ticks.callback = function(value) {
-                        return window.formatPercent(value);
+                        return window.formatPercent ? window.formatPercent(value) : value + '%';
                     };
                 } else {
                     yScale.ticks.callback = function(value) {
-                        return window.formatMoney(value, 'RUB', 0);
+                        return window.formatMoney ? window.formatMoney(value, 'RUB', 0) : value;
                     };
                 }
                 
-                chartInstance.update('none');
+                chartInstance.update();
             }
+        },
+        
+        // ES5-compatible merge function
+        mergeOptions: function(target, source) {
+            var result = {};
+            var key;
+            
+            // Copy target properties
+            for (key in target) {
+                if (target.hasOwnProperty(key)) {
+                    if (typeof target[key] === 'object' && target[key] !== null && !Array.isArray(target[key])) {
+                        result[key] = this.mergeOptions(target[key], {});
+                    } else {
+                        result[key] = target[key];
+                    }
+                }
+            }
+            
+            // Copy source properties, overriding target
+            for (key in source) {
+                if (source.hasOwnProperty(key)) {
+                    if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key]) &&
+                        typeof result[key] === 'object' && result[key] !== null && !Array.isArray(result[key])) {
+                        result[key] = this.mergeOptions(result[key], source[key]);
+                    } else {
+                        result[key] = source[key];
+                    }
+                }
+            }
+            
+            return result;
         }
     };
     
