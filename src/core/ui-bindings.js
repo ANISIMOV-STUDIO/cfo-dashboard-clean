@@ -31,22 +31,16 @@
             setTimeout(function() {
                 if (window.SelectLite) {
                     window.SelectLite.initialize();
-                    console.log('SelectLite initialized');
-                    
-                    // Debug: check if selects are properly bound
-                    var selects = document.querySelectorAll('.select .sel-btn');
-                    console.log('Found ' + selects.length + ' select buttons');
                     
                     // Force re-bind if needed
+                    var selects = document.querySelectorAll('.select .sel-btn');
                     if (selects.length > 0) {
-                        self.debugSelectLite();
                         self.forceBindSelects();
                     }
                     
                     // Initialize demo data and trigger chart rendering
                     self.initializeDashboardData();
                 } else {
-                    console.warn('SelectLite not found');
                     // Still initialize data even without SelectLite
                     self.initializeDashboardData();
                 }
@@ -55,8 +49,6 @@
         
         // Initialize dashboard with demo data
         initializeDashboardData: function() {
-            console.log('Initializing dashboard data...');
-            
             // Ensure DataManager has data
             if (window.DataManager) {
                 window.DataManager.initializeDemoData();
@@ -65,24 +57,12 @@
                 var currentPage = window.DashboardState ? window.DashboardState.getCurrentPage() : 'overview';
                 
                 setTimeout(function() {
-                    console.log('Checking PageRenderers availability...');
-                    console.log('PageRenderers:', !!window.PageRenderers);
-                    console.log('DataManager.currentData:', !!window.DataManager.currentData);
-                    
                     if (window.PageRenderers && window.DataManager.currentData) {
-                        console.log('Triggering chart render for page:', currentPage);
-                        console.log('Data structure:', Object.keys(window.DataManager.currentData));
-                        
                         window.PageRenderers.currentData = window.DataManager.currentData;
                         window.PageRenderers.renderPageCharts(currentPage, window.DataManager.currentData);
                     } else {
-                        console.warn('Missing dependencies for chart rendering:');
-                        console.warn('- PageRenderers:', !!window.PageRenderers);
-                        console.warn('- DataManager.currentData:', !!window.DataManager.currentData);
-                        
                         // Try to force load data if PageRenderers exists but no data
                         if (window.PageRenderers && !window.DataManager.currentData) {
-                            console.log('Forcing data load...');
                             window.DataManager.initializeDemoData();
                             
                             setTimeout(function() {
@@ -880,59 +860,9 @@
             }
         },
         
-        // Debug SelectLite functionality
-        debugSelectLite: function() {
-            console.log('=== SelectLite Debug ===');
-            
-            // Check if selects have proper structure
-            var selects = document.querySelectorAll('.select');
-            console.log('Total .select containers:', selects.length);
-            
-            selects.forEach(function(select, index) {
-                var id = select.getAttribute('data-select-id');
-                var btn = select.querySelector('.sel-btn');
-                var menu = select.querySelector('.sel-menu');
-                var items = select.querySelectorAll('.sel-item');
-                
-                console.log('Select ' + index + ' (id: ' + id + '):');
-                console.log('  - Button:', !!btn);
-                console.log('  - Menu:', !!menu);
-                console.log('  - Items:', items.length);
-                console.log('  - Pointer events:', window.getComputedStyle(btn).pointerEvents);
-                console.log('  - Z-index:', window.getComputedStyle(select).zIndex);
-                
-                // Test click manually
-                if (btn) {
-                    var self = this;
-                    btn.addEventListener('click', function(e) {
-                        console.log('Manual click detected on select:', id);
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        var wrap = e.target.closest('.select');
-                        if (wrap) {
-                            var isOpen = wrap.classList.contains('open');
-                            console.log('Select is currently:', isOpen ? 'open' : 'closed');
-                            
-                            // Close all others first
-                            document.querySelectorAll('.select.open').forEach(function(openSelect) {
-                                openSelect.classList.remove('open');
-                            });
-                            
-                            // Toggle this one
-                            if (!isOpen) {
-                                wrap.classList.add('open');
-                                console.log('Opened select:', id);
-                            }
-                        }
-                    });
-                }
-            });
-        },
         
         // Force bind select events as fallback
         forceBindSelects: function() {
-            console.log('Force binding select events...');
             
             var selects = document.querySelectorAll('.select');
             selects.forEach(function(select) {
@@ -948,7 +878,6 @@
                     btn.parentNode.replaceChild(newBtn, btn);
                     btn = newBtn;
                 } else {
-                    console.warn('Button has no parent node, skipping clone');
                     return;
                 }
                 
@@ -957,7 +886,7 @@
                     e.preventDefault();
                     e.stopPropagation();
                     
-                    console.log('Forced click on select:', select.getAttribute('data-select-id'));
+                    // Handle select click
                     
                     var wrap = e.target.closest('.select');
                     if (!wrap) return;
@@ -1225,7 +1154,7 @@ window.SelectLite = (function() {
     function init(root) { 
         root = root || document; 
         var selects = root.querySelectorAll('.select .sel-btn');
-        console.log('SelectLite found ' + selects.length + ' selects');
+        // Initialize selects
         for (var i = 0; i < selects.length; i++) { 
             bind(selects[i]); 
         }

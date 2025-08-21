@@ -116,7 +116,7 @@ body {
 }
 
 .kpi-row {
-  height: 96px !important;
+  height: 56px !important;
   display: flex !important;
   gap: 12px !important;
   padding: 0 24px !important;
@@ -126,19 +126,18 @@ body {
 }
 
 .filters {
-  height: 56px !important;
+  height: 112px !important;
   display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 12px !important;
+  flex-direction: column !important;
+  gap: 0 !important;
   padding: 0 24px !important;
-  align-items: center !important;
   flex-shrink: 0 !important;
   border-bottom: 1px solid #eef2f7 !important;
   pointer-events: auto !important;
 }
 
 .content {
-  height: calc(860px - 56px - 96px - 56px - 36px) !important; /* Total - header - kpi - filters - footer */
+  height: calc(860px - 56px - 56px - 112px - 36px) !important; /* Total - header - kpi - filters - footer */
   padding: 0 24px !important;
   display: flex !important;
   gap: 16px !important;
@@ -160,24 +159,6 @@ body {
   overflow: hidden !important;
 }
 
-/* Пресеты — всегда во втором ряду, не «взлетают» */
-.preset-group {
-  height: 36px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-  margin: 0 !important;
-}
-
-.preset-btn {
-  height: 36px !important;
-  line-height: 36px !important;
-}
-
-/* Убираем любые отрицательные маргины сверху у пресетов/селектов */
-.preset-group, .filters .select, .filters select {
-  margin-top: 0 !important;
-}
 
 main {
   flex: 1 !important;
@@ -226,21 +207,13 @@ main {
 }
 
 .kpi-row { 
-  height: 96px !important; 
+  height: 56px !important; 
   display: flex !important; 
   gap: 12px !important; 
   padding: 0 24px !important;
   flex-shrink: 0 !important;
 }
 
-.filters {
-  height: 56px !important; 
-  display: flex !important; 
-  align-items: center !important; 
-  gap: 12px !important; 
-  padding: 0 24px !important;
-  flex-shrink: 0 !important;
-}
 
 /* Removed duplicate footer-tabs definition */
 
@@ -262,18 +235,21 @@ main {
   line-height: 1.3;
 }
 
-/* KPI Cards - macOS Style */
+/* KPI Pills - Compact macOS Style */
 .kpi { 
   flex: 1 0 0 !important; 
+  height: 48px !important;
   background: var(--panel) !important; 
   border-radius: var(--radius) !important; 
   box-shadow: var(--shadow) !important; 
   border: 1px solid var(--border-light) !important;
-  padding: 16px 20px !important; 
+  padding: 8px 16px !important; 
   display: flex !important;
-  flex-direction: column !important;
-  justify-content: center !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
   transition: all 0.2s ease !important;
+  position: relative !important;
 }
 
 .kpi:hover {
@@ -283,23 +259,28 @@ main {
 
 .kpi .val {
   font-weight: 600 !important;
-  font-size: 20px !important;
-  margin-bottom: 2px !important;
+  font-size: 17px !important;
   line-height: 1.2 !important;
+  margin-right: 8px !important;
+  white-space: nowrap !important;
 }
 
 .kpi .cap {
   font-size: 12px !important;
   color: #6B7280 !important;
-  margin-bottom: 4px !important;
+  white-space: nowrap !important;
+  flex: 1 !important;
 }
 
 .kpi .change {
-  font-size: 11px !important;
+  font-size: 10px !important;
   font-weight: 500 !important;
-  padding: 2px 6px !important;
-  border-radius: 6px !important;
-  width: fit-content !important;
+  padding: 2px 5px !important;
+  border-radius: 4px !important;
+  position: absolute !important;
+  bottom: 2px !important;
+  right: 8px !important;
+  line-height: 1 !important;
 }
 
 .kpi .change.positive { 
@@ -317,211 +298,620 @@ main {
   background: rgba(107, 114, 128, 0.1) !important;
 }
 
-/* Custom SelectLite Controls */
-.select {
-  position: relative;
-  z-index: 1;
+
+
+
+/* ===============================================
+   MODERN FILTER SYSTEM - COMPLETELY REDESIGNED
+   =============================================== */
+
+/* Main Filters Container */
+.filters {
+  height: 112px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  padding: 16px 24px !important;
+  flex-shrink: 0 !important;
+  border-bottom: 1px solid var(--border-light) !important;
+  background: linear-gradient(180deg, #fafbfc 0%, #f8f9fa 100%) !important;
   pointer-events: auto !important;
 }
 
-/* Нормализация 1.2: Селекты без переносов */
-.select, .sel-btn {
+/* Filter Rows */
+.filter-row {
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.filter-row::-webkit-scrollbar {
+  display: none !important;
+}
+
+.filter-row-a {
+  justify-content: flex-start !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  padding-bottom: 8px !important;
+}
+
+.filter-row-b {
+  justify-content: flex-start !important;
+  padding-top: 8px !important;
+}
+
+/* ===============================================
+   PRESET BUTTONS - MODERN DESIGN
+   =============================================== */
+
+.preset-group {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+.preset-btn {
+  height: 32px !important;
+  padding: 0 16px !important;
+  border: none !important;
+  background: transparent !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
   white-space: nowrap !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif !important;
+  letter-spacing: -0.01em !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 60px !important;
+  pointer-events: auto !important;
+}
+
+.preset-btn:hover:not(.active) {
+  background: rgba(0, 122, 255, 0.08) !important;
+  color: var(--accent) !important;
+}
+
+.preset-btn.active {
+  background: var(--accent) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 6px rgba(0, 122, 255, 0.25) !important;
+}
+
+.preset-btn:active {
+  transform: scale(0.98) !important;
+}
+
+/* ===============================================
+   DATE PICKER COMPONENTS - MODERN DESIGN
+   =============================================== */
+
+.date-picker-group {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  position: relative !important;
+  flex-shrink: 0 !important;
+  margin-left: auto !important;
+}
+
+.date-input-container {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: #ffffff !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  padding: 0 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.2s ease !important;
+  flex-shrink: 0 !important;
+}
+
+.date-input-container:hover {
+  border-color: var(--accent) !important;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.1) !important;
+}
+
+.date-input-container:focus-within {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1) !important;
+}
+
+.date-label {
+  font-size: 12px !important;
+  color: var(--text-muted) !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  margin: 0 !important;
+  user-select: none !important;
+}
+
+.date-input {
+  width: 85px !important;
+  height: 32px !important;
+  padding: 0 6px !important;
+  border: none !important;
+  background: transparent !important;
+  font-size: 13px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", monospace !important;
+  color: var(--text) !important;
+  text-align: center !important;
+  outline: none !important;
+  font-weight: 500 !important;
+}
+
+.date-input::placeholder {
+  color: var(--text-muted) !important;
+  font-weight: 400 !important;
+}
+
+.date-calendar-btn {
+  width: 28px !important;
+  height: 28px !important;
+  border: none !important;
+  background: transparent !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 14px !important;
+  transition: all 0.2s ease !important;
+  color: var(--text-muted) !important;
+  pointer-events: auto !important;
+}
+
+.date-calendar-btn:hover {
+  background: rgba(0, 122, 255, 0.1) !important;
+  color: var(--accent) !important;
+}
+
+.date-calendar-btn:active {
+  transform: scale(0.95) !important;
+}
+
+/* ===============================================
+   DROPDOWN SELECTS - MODERN DESIGN
+   =============================================== */
+
+.select {
+  position: relative !important;
+  display: inline-block !important;
+  flex-shrink: 0 !important;
+  pointer-events: auto !important;
+  z-index: 1 !important;
 }
 
 .sel-btn {
-  height: 36px !important;
+  height: 32px !important;
   padding: 0 12px !important;
-  border: 1px solid #e5e7eb !important;
+  border: 1px solid var(--border) !important;
   border-radius: 10px !important;
-  background: #fff !important;
-  box-shadow: 0 2px 20px rgba(0,0,0,.06) !important;
-  font-size: 14px !important;
+  background: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  max-width: 220px !important;
-  min-width: 180px !important;
+  max-width: 200px !important;
+  min-width: 140px !important;
   text-overflow: ellipsis !important;
   overflow: hidden !important;
-  font-family: -apple-system, system-ui !important;
+  white-space: nowrap !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif !important;
   pointer-events: auto !important;
   color: var(--text) !important;
   transition: all 0.2s ease !important;
+  letter-spacing: -0.01em !important;
 }
 
 .sel-btn:hover {
-  box-shadow: 0 8px 32px rgba(0,0,0,.12) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.1) !important;
 }
 
-.sel-menu {
-  min-width: 220px !important;
-  max-width: 360px !important;
+.select.open .sel-btn {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1) !important;
 }
 
-.filters .select {
-  flex: 0 0 auto !important; /* не сжимать */
-}
-
-/* Arrow is handled by JavaScript */
 .sel-arrow {
   margin-left: 8px !important;
-  font-size: 12px !important;
-  color: #6B7280 !important;
+  font-size: 10px !important;
+  color: var(--text-muted) !important;
   pointer-events: none !important;
+  transition: transform 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.select.open .sel-arrow {
+  transform: rotate(180deg) !important;
 }
 
 .sel-menu {
   position: absolute !important;
-  top: 40px !important;
+  top: 36px !important;
   left: 0 !important;
-  min-width: 220px !important;
-  background: #fff !important;
-  border: 1px solid #e5e7eb !important;
+  right: 0 !important;
+  background: #ffffff !important;
+  border: 1px solid var(--border) !important;
   border-radius: 12px !important;
-  box-shadow: 0 14px 40px rgba(0,0,0,.08) !important;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.04) !important;
   list-style: none !important;
   margin: 0 !important;
   padding: 6px !important;
   display: none !important;
-  max-height: 280px !important;
-  overflow: auto !important;
+  max-height: 240px !important;
+  overflow-y: auto !important;
   z-index: 1000 !important;
   opacity: 0 !important;
-  transform: translateY(-8px) !important;
+  transform: translateY(-8px) scale(0.95) !important;
   transition: all 0.2s ease !important;
   pointer-events: auto !important;
-}
-
-.sel-item {
-  padding: 8px 10px !important;
-  border-radius: 8px !important;
-  cursor: pointer !important;
-  font-size: 14px !important;
-  pointer-events: auto !important;
-}
-
-.sel-item:hover,
-.sel-item[aria-selected="true"],
-.sel-item.focused {
-  background: #F2F8FF !important;
-}
-
-.sel-item.focused {
-  outline: 1px solid var(--accent) !important;
+  backdrop-filter: blur(20px) !important;
 }
 
 .select.open .sel-menu {
   display: block !important;
   opacity: 1 !important;
-  transform: translateY(0) !important;
+  transform: translateY(0) scale(1) !important;
   z-index: 1001 !important;
 }
 
-.select.open {
-  z-index: 1000 !important;
+.sel-item {
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--text) !important;
+  transition: all 0.15s ease !important;
+  pointer-events: auto !important;
+  letter-spacing: -0.01em !important;
+  user-select: none !important;
 }
 
-.preset-group { 
-  display: inline-flex; 
-  align-items: center; 
-  padding: 3px; 
-  gap: 2px; 
-  width: max-content; 
+.sel-item:hover,
+.sel-item.focused {
+  background: rgba(0, 122, 255, 0.08) !important;
+  color: var(--accent) !important;
 }
 
-.preset-btn { 
-  border: 0; 
-  height: 34px; 
-  padding: 0 16px; 
-  border-radius: var(--radius-small); 
-  background: transparent; 
-  color: var(--text); 
-  cursor: pointer; 
-  font-size: 13px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  font-family: inherit;
+.sel-item[aria-selected="true"] {
+  background: var(--accent) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.sel-item:active {
+  transform: scale(0.98) !important;
+}
+
+/* ===============================================
+   FILTER RESPONSIVENESS & INTERACTIONS
+   =============================================== */
+
+/* Focus states for accessibility */
+.preset-btn:focus-visible,
+.sel-btn:focus-visible,
+.date-input:focus-visible,
+.date-calendar-btn:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15) !important;
+}
+
+/* Ensure all interactive elements are accessible */
+.filters * {
   pointer-events: auto !important;
 }
 
-.preset-btn:hover:not(.active) { 
-  background: rgba(10, 132, 255, 0.1); 
+/* ===============================================
+   PROPORTIONAL SCALING SYSTEM FOR ALL SCREENS
+   =============================================== */
+
+/* Base scaling variables */
+:root {
+  --scale-factor: 1;
+  --base-font-size: calc(13px * var(--scale-factor));
+  --base-padding: calc(16px * var(--scale-factor));
+  --base-gap: calc(12px * var(--scale-factor));
+  --base-radius: calc(10px * var(--scale-factor));
+  --base-height: calc(32px * var(--scale-factor));
 }
 
-.preset-btn.active { 
-  background: var(--accent); 
-  color: white; 
-  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3); 
+/* Scale-based filter adjustments */
+.scale-small .filters {
+  padding: calc(12px * var(--scale-factor)) calc(20px * var(--scale-factor)) !important;
 }
 
-/* Custom Date Picker - macOS Style */
-.date-picker-group {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  position: relative;
+.scale-small .filter-row {
+  gap: calc(8px * var(--scale-factor)) !important;
 }
 
+.scale-small .preset-btn {
+  height: calc(28px * var(--scale-factor)) !important;
+  padding: 0 calc(12px * var(--scale-factor)) !important;
+  font-size: calc(12px * var(--scale-factor)) !important;
+  min-width: calc(50px * var(--scale-factor)) !important;
+}
+
+.scale-small .sel-btn {
+  height: calc(28px * var(--scale-factor)) !important;
+  min-width: calc(120px * var(--scale-factor)) !important;
+  max-width: calc(180px * var(--scale-factor)) !important;
+  font-size: calc(12px * var(--scale-factor)) !important;
+}
+
+.scale-small .date-input {
+  width: calc(75px * var(--scale-factor)) !important;
+  height: calc(28px * var(--scale-factor)) !important;
+  font-size: calc(12px * var(--scale-factor)) !important;
+}
+
+.scale-small .date-calendar-btn {
+  width: calc(24px * var(--scale-factor)) !important;
+  height: calc(24px * var(--scale-factor)) !important;
+}
+
+/* Large screen optimizations */
+.scale-large .filters,
+.scale-xlarge .filters {
+  padding: calc(20px * var(--scale-factor)) calc(28px * var(--scale-factor)) !important;
+}
+
+.scale-large .filter-row,
+.scale-xlarge .filter-row {
+  gap: calc(20px * var(--scale-factor)) !important;
+}
+
+.scale-large .preset-btn,
+.scale-xlarge .preset-btn {
+  height: calc(36px * var(--scale-factor)) !important;
+  padding: 0 calc(20px * var(--scale-factor)) !important;
+  font-size: calc(14px * var(--scale-factor)) !important;
+  min-width: calc(70px * var(--scale-factor)) !important;
+}
+
+.scale-large .sel-btn,
+.scale-xlarge .sel-btn {
+  height: calc(36px * var(--scale-factor)) !important;
+  min-width: calc(160px * var(--scale-factor)) !important;
+  max-width: calc(240px * var(--scale-factor)) !important;
+  font-size: calc(14px * var(--scale-factor)) !important;
+  padding: 0 calc(16px * var(--scale-factor)) !important;
+}
+
+.scale-large .date-input,
+.scale-xlarge .date-input {
+  width: calc(95px * var(--scale-factor)) !important;
+  height: calc(36px * var(--scale-factor)) !important;
+  font-size: calc(14px * var(--scale-factor)) !important;
+}
+
+.scale-large .date-calendar-btn,
+.scale-xlarge .date-calendar-btn {
+  width: calc(32px * var(--scale-factor)) !important;
+  height: calc(32px * var(--scale-factor)) !important;
+}
+
+/* Ultra-large screen specific adjustments */
+.scale-xlarge .preset-btn {
+  font-size: calc(15px * var(--scale-factor)) !important;
+  padding: 0 calc(24px * var(--scale-factor)) !important;
+  height: calc(40px * var(--scale-factor)) !important;
+}
+
+.scale-xlarge .sel-btn {
+  font-size: calc(15px * var(--scale-factor)) !important;
+  height: calc(40px * var(--scale-factor)) !important;
+  min-width: calc(180px * var(--scale-factor)) !important;
+  max-width: calc(280px * var(--scale-factor)) !important;
+}
+
+.scale-xlarge .date-input {
+  height: calc(40px * var(--scale-factor)) !important;
+  font-size: calc(15px * var(--scale-factor)) !important;
+  width: calc(105px * var(--scale-factor)) !important;
+}
+
+.scale-xlarge .date-calendar-btn {
+  width: calc(36px * var(--scale-factor)) !important;
+  height: calc(36px * var(--scale-factor)) !important;
+}
+
+/* Dynamic border radius and shadows scaling */
+.preset-group {
+  border-radius: calc(12px * var(--scale-factor)) !important;
+  padding: calc(4px * var(--scale-factor)) !important;
+  gap: calc(2px * var(--scale-factor)) !important;
+}
+
+.preset-btn {
+  border-radius: calc(8px * var(--scale-factor)) !important;
+}
+
+.sel-btn,
 .date-input-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.date-label {
-  font-size: 13px;
-  color: var(--muted);
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.date-input {
-  width: 100px;
-  height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-small);
-  background: #fff;
-  font-size: 14px;
-  font-family: inherit;
-  color: var(--text);
-  transition: all 0.2s ease;
-  text-align: center;
-}
-
-.date-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
-}
-
-.date-input.error {
-  border-color: #DC2626;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  border-radius: calc(10px * var(--scale-factor)) !important;
 }
 
 .date-calendar-btn {
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-small);
-  background: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  opacity: 0.8;
+  border-radius: calc(6px * var(--scale-factor)) !important;
 }
 
-.date-calendar-btn:hover {
-  opacity: 1;
-  border-color: var(--accent);
-  box-shadow: var(--shadow);
+.sel-menu {
+  border-radius: calc(12px * var(--scale-factor)) !important;
+  padding: calc(6px * var(--scale-factor)) !important;
+  top: calc(36px * var(--scale-factor)) !important;
 }
+
+.sel-item {
+  border-radius: calc(8px * var(--scale-factor)) !important;
+  padding: calc(8px * var(--scale-factor)) calc(12px * var(--scale-factor)) !important;
+}
+
+/* Proportional spacing for date picker */
+.date-picker-group {
+  gap: calc(12px * var(--scale-factor)) !important;
+}
+
+.date-input-container {
+  gap: calc(6px * var(--scale-factor)) !important;
+  padding: 0 calc(8px * var(--scale-factor)) !important;
+}
+
+/* High-DPI and 4K+ screen optimizations */
+@media (min-width: 2560px) {
+  .scale-xlarge .filters {
+    padding: calc(24px * var(--scale-factor)) calc(32px * var(--scale-factor)) !important;
+    height: calc(140px * var(--scale-factor)) !important;
+  }
+  
+  .scale-xlarge .filter-row {
+    height: calc(50px * var(--scale-factor)) !important;
+    gap: calc(24px * var(--scale-factor)) !important;
+  }
+  
+  .scale-xlarge .preset-btn {
+    height: calc(44px * var(--scale-factor)) !important;
+    font-size: calc(16px * var(--scale-factor)) !important;
+    padding: 0 calc(28px * var(--scale-factor)) !important;
+  }
+  
+  .scale-xlarge .sel-btn {
+    height: calc(44px * var(--scale-factor)) !important;
+    font-size: calc(16px * var(--scale-factor)) !important;
+    min-width: calc(200px * var(--scale-factor)) !important;
+    max-width: calc(320px * var(--scale-factor)) !important;
+  }
+  
+  .scale-xlarge .date-input {
+    height: calc(44px * var(--scale-factor)) !important;
+    font-size: calc(16px * var(--scale-factor)) !important;
+    width: calc(115px * var(--scale-factor)) !important;
+  }
+  
+  .scale-xlarge .date-calendar-btn {
+    width: calc(40px * var(--scale-factor)) !important;
+    height: calc(40px * var(--scale-factor)) !important;
+  }
+}
+
+/* Retina display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .preset-group,
+  .sel-btn,
+  .date-input-container {
+    box-shadow: 0 calc(1px * var(--scale-factor)) calc(4px * var(--scale-factor)) rgba(0, 0, 0, 0.06) !important;
+  }
+  
+  .preset-btn.active {
+    box-shadow: 0 calc(1px * var(--scale-factor)) calc(3px * var(--scale-factor)) rgba(0, 122, 255, 0.3) !important;
+  }
+}
+
+/* Smooth scaling transitions */
+.filters,
+.filter-row,
+.preset-group,
+.preset-btn,
+.sel-btn,
+.date-input-container,
+.date-input,
+.date-calendar-btn {
+  transition: all 0.3s ease !important;
+}
+
+/* Ensure text remains crisp at all scales */
+.preset-btn,
+.sel-btn,
+.date-input,
+.date-label {
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* Animation improvements */
+.preset-btn,
+.sel-btn,
+.date-calendar-btn {
+  transform-origin: center !important;
+}
+
+/* Improved visual hierarchy */
+.filter-row-a {
+  position: relative !important;
+}
+
+.filter-row-a::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.05) 20%, rgba(0, 0, 0, 0.05) 80%, transparent 100%) !important;
+}
+
+/* Loading states for better UX */
+.sel-btn.loading {
+  opacity: 0.7 !important;
+  cursor: wait !important;
+}
+
+.sel-btn.loading .sel-arrow {
+  animation: spin 1s linear infinite !important;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg) !important; }
+  to { transform: rotate(360deg) !important; }
+}
+
+/* Error states */
+.date-input.error {
+  border-color: var(--error) !important;
+  box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.1) !important;
+}
+
+.date-input-container.error {
+  border-color: var(--error) !important;
+  box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.1) !important;
+}
+
+/* Success states */
+.date-input.success {
+  border-color: var(--success) !important;
+}
+
+.date-input-container.success {
+  border-color: var(--success) !important;
+}
+
 
 /* Custom Calendar Popup */
 .custom-calendar {

@@ -8,7 +8,7 @@
 (function() {
     'use strict';
     
-    var DESIGN_W = 1360, DESIGN_H = 860, MIN = 0.6, MAX = 1;
+    var DESIGN_W = 1360, DESIGN_H = 860, MIN = 0.6, MAX = 2.0;
     
     function throttle(fn, ms) {
         var t = 0;
@@ -37,6 +37,29 @@
         // Set physical size for proper click handling
         wrapper.style.setProperty('--w', Math.round(DESIGN_W * s) + 'px');
         wrapper.style.setProperty('--h', Math.round(DESIGN_H * s) + 'px');
+        
+        // Set scale factor as CSS variable for proportional scaling
+        document.documentElement.style.setProperty('--scale-factor', s);
+        
+        // Apply responsive classes based on scale
+        var body = document.body;
+        body.classList.remove('scale-small', 'scale-medium', 'scale-large', 'scale-xlarge');
+        
+        if (s < 0.8) {
+            body.classList.add('scale-small');
+        } else if (s < 1.2) {
+            body.classList.add('scale-medium');
+        } else if (s < 1.6) {
+            body.classList.add('scale-large');
+        } else {
+            body.classList.add('scale-xlarge');
+        }
+        
+        // Debug log for development
+        if (window.console && window.console.log) {
+            console.log('Scale applied: ' + s.toFixed(3) + ', Screen: ' + vw + 'x' + vh + ', Class: scale-' + 
+                (s < 0.8 ? 'small' : s < 1.2 ? 'medium' : s < 1.6 ? 'large' : 'xlarge'));
+        }
     }
     
     // Initialize scaler
@@ -77,7 +100,7 @@
         // Initialize dashboard
         initialize: function(options) {
             if (this.initialized) {
-                console.warn('CFO Dashboard already initialized');
+                // Already initialized
                 return { success: false, error: 'Already initialized' };
             }
             
@@ -98,9 +121,6 @@
                 // Setup external API for 1C
                 this.setupExternal1CAPI();
                 
-                // Setup debug API
-                this.setupDebugAPI();
-                
                 // Setup performance monitoring
                 if (this.config.enablePerformanceTracking) {
                     this.setupPerformanceMonitoring();
@@ -110,43 +130,6 @@
                 this.initialized = true;
                 
                 var duration = Date.now() - startTime;
-                // Dashboard initialized successfully
-                
-                // Add debug test for Chart.js and chart creation
-                var debugElement = document.getElementById('debug-info');
-                if (debugElement) {
-                    debugElement.innerHTML += '<div><strong>Dashboard initialized</strong></div>';
-                    debugElement.innerHTML += '<div>Chart.js available: ' + (typeof Chart) + '</div>';
-                    debugElement.innerHTML += '<div>ChartFactory available: ' + (typeof window.ChartFactory) + '</div>';
-                    debugElement.innerHTML += '<div>PageRenderers available: ' + (typeof window.PageRenderers) + '</div>';
-                    
-                    // Test chart creation immediately
-                    setTimeout(function() {
-                        debugElement.innerHTML += '<div>Testing chart creation...</div>';
-                        var testCanvas = document.createElement('canvas');
-                        testCanvas.id = 'debug-test-canvas';
-                        testCanvas.width = 200;
-                        testCanvas.height = 100;
-                        testCanvas.style.display = 'none';
-                        document.body.appendChild(testCanvas);
-                        
-                        try {
-                            var testChart = new Chart(testCanvas, {
-                                type: 'line',
-                                data: {
-                                    labels: ['A', 'B', 'C'],
-                                    datasets: [{
-                                        data: [1, 2, 3],
-                                        borderColor: 'red'
-                                    }]
-                                }
-                            });
-                            debugElement.innerHTML += '<div>SUCCESS: Direct Chart.js test passed</div>';
-                        } catch (error) {
-                            debugElement.innerHTML += '<div>ERROR: Direct Chart.js test failed: ' + error.message + '</div>';
-                        }
-                    }, 500);
-                }
                 
                 // Trigger initialization event
                 this.triggerEvent('dashboardInitialized', {
@@ -382,87 +365,6 @@
             };
         },
         
-        // Setup debug API
-        setupDebugAPI: function() {
-            var self = this;
-            
-            window.__dbg = {
-                version: this.version,
-                config: this.config,
-                
-                // Self-check for duplicate functions and errors
-                selfCheck: function() {
-                    var errors = [];
-                    var warnings = [];
-                    
-                    // Check for duplicate function names in window
-                    var functionNames = {};
-                    for (var prop in window) {
-                        if (typeof window[prop] === 'function') {
-                            if (functionNames[prop]) {
-                                errors.push('Duplicate function: ' + prop);
-                            }
-                            functionNames[prop] = true;
-                        }
-                    }
-                    
-                    // Check for duplicate IDs in DOM
-                    var ids = {};
-                    var elements = document.querySelectorAll('[id]');
-                    for (var i = 0; i < elements.length; i++) {
-                        var id = elements[i].id;
-                        if (ids[id]) {
-                            errors.push('Duplicate ID: ' + id);
-                        }
-                        ids[id] = true;
-                    }
-                    
-                    // Check required functions exist
-                    var requiredFunctions = [
-                        'updatePrintHeader', 'printCurrentPage', 'printAllPages',
-                        'createHorizontalBarChart', 'switchTab', 'getCurrentPage'
-                    ];
-                    
-                    requiredFunctions.forEach(function(funcName) {
-                        if (typeof window[funcName] !== 'function') {
-                            errors.push('Missing required function: ' + funcName);
-                        }
-                    });
-                    
-                    // Check Chart.js availability
-                    if (typeof Chart === 'undefined') {
-                        errors.push('Chart.js not loaded');
-                    }
-                    
-                    return {
-                        passed: errors.length === 0,
-                        errors: errors,
-                        warnings: warnings,
-                        timestamp: new Date().toISOString()
-                    };
-                },
-                
-                // Get performance metrics
-                getPerformanceMetrics: function() {
-                    return {
-                        initialized: self.initialized,
-                        startTime: self.startTime,
-                        uptime: Date.now() - self.startTime,
-                        state: window.DashboardState ? window.DashboardState.getPerformanceMetrics() : null,
-                        charts: self.getChartPerformanceMetrics()
-                    };
-                },
-                
-                // Force garbage collection (if available)
-                gc: function() {
-                    if (window.gc) {
-                        window.gc();
-                        return 'Garbage collection triggered';
-                    }
-                    return 'Garbage collection not available';
-                }
-            };
-        },
         
         // Setup performance monitoring
         setupPerformanceMonitoring: function() {

@@ -20,15 +20,18 @@
             var formatted;
             var abs = Math.abs(amount);
             
-            // Auto-scale large numbers
+            // Auto-scale large numbers for tooltips (full format with separators)
             if (abs >= 1000000000) {
-                formatted = (amount / 1000000000).toFixed(precision) + ' млрд';
+                var billions = (amount / 1000000000).toFixed(precision);
+                formatted = FormatUtils.addThousandSeparators(billions) + ' млрд';
             } else if (abs >= 1000000) {
-                formatted = (amount / 1000000).toFixed(precision) + ' млн';
+                var millions = (amount / 1000000).toFixed(precision);
+                formatted = FormatUtils.addThousandSeparators(millions) + ' млн';
             } else if (abs >= 1000) {
-                formatted = (amount / 1000).toFixed(precision) + ' тыс';
+                var thousands = (amount / 1000).toFixed(precision);
+                formatted = FormatUtils.addThousandSeparators(thousands) + ' тыс';
             } else {
-                formatted = amount.toFixed(precision);
+                formatted = FormatUtils.addThousandSeparators(amount.toFixed(precision));
             }
             
             // Add currency symbol
@@ -38,6 +41,11 @@
                 case 'EUR': return '€' + formatted;
                 default: return formatted + ' ' + currency;
             }
+        },
+        
+        // Add thousand separators for tooltip display
+        addThousandSeparators: function(numStr) {
+            return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
         },
         
         formatNumber: function(number, precision) {

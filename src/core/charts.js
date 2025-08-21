@@ -17,23 +17,23 @@
             negative: '#DC2626',
             neutral: '#6B7280',
             background: 'rgba(17,24,39,0.08)',
-            gridLines: 'rgba(17,24,39,0.08)'
+            gridLines: 'rgba(0,0,0,0.06)'
         },
         
         // Unified readability settings for all charts
         readability: {
             // Font settings
             fontSize: {
-                axis: 13,
+                axis: 12,
                 tooltip: {
                     title: 13,
-                    body: 13
+                    body: 12
                 },
-                legend: 13,
+                legend: 12,
                 title: 14
             },
             fontColor: {
-                primary: '#374151',
+                primary: '#1F2937',
                 secondary: '#6B7280',
                 inverse: '#FFFFFF'
             },
@@ -47,6 +47,30 @@
             animation: {
                 duration: 200,
                 easing: 'easeOutQuart'
+            },
+            // Chart element styles
+            elements: {
+                line: {
+                    borderWidth: 2.5,
+                    tension: 0.1,
+                    fill: false
+                },
+                point: {
+                    radius: 2,
+                    hoverRadius: 4,
+                    backgroundColor: 'transparent'
+                },
+                bar: {
+                    borderWidth: 0
+                }
+            },
+            // Color scheme
+            colors: {
+                positive: '#27ae60',
+                negative: '#e74c3c', 
+                neutral: '#6B7280',
+                grid: 'rgba(0,0,0,0.06)',
+                gridZero: 'rgba(0,0,0,0.15)'
             }
         },
         
@@ -103,6 +127,12 @@
             config.options.animation.duration = this.readability.animation.duration;
             config.options.animation.easing = this.readability.animation.easing;
             
+            // Apply element styles
+            if (!config.options.elements) config.options.elements = {};
+            config.options.elements.line = Object.assign({}, this.readability.elements.line);
+            config.options.elements.point = Object.assign({}, this.readability.elements.point);
+            config.options.elements.bar = Object.assign({}, this.readability.elements.bar);
+            
             // Apply tooltip settings
             if (!config.options.tooltips) config.options.tooltips = {};
             config.options.tooltips.titleFontSize = this.readability.fontSize.tooltip.title;
@@ -117,8 +147,12 @@
             if (config.options.scales.xAxes) {
                 for (var i = 0; i < config.options.scales.xAxes.length; i++) {
                     if (!config.options.scales.xAxes[i].ticks) config.options.scales.xAxes[i].ticks = {};
+                    if (!config.options.scales.xAxes[i].gridLines) config.options.scales.xAxes[i].gridLines = {};
                     config.options.scales.xAxes[i].ticks.fontSize = this.readability.fontSize.axis;
                     config.options.scales.xAxes[i].ticks.fontColor = this.readability.fontColor.primary;
+                    config.options.scales.xAxes[i].ticks.maxTicksLimit = 7;
+                    config.options.scales.xAxes[i].gridLines.color = this.readability.colors.grid;
+                    config.options.scales.xAxes[i].gridLines.zeroLineColor = this.readability.colors.gridZero;
                 }
             }
             
@@ -126,8 +160,12 @@
             if (config.options.scales.yAxes) {
                 for (var j = 0; j < config.options.scales.yAxes.length; j++) {
                     if (!config.options.scales.yAxes[j].ticks) config.options.scales.yAxes[j].ticks = {};
+                    if (!config.options.scales.yAxes[j].gridLines) config.options.scales.yAxes[j].gridLines = {};
                     config.options.scales.yAxes[j].ticks.fontSize = this.readability.fontSize.axis;
                     config.options.scales.yAxes[j].ticks.fontColor = this.readability.fontColor.primary;
+                    config.options.scales.yAxes[j].ticks.maxTicksLimit = 5;
+                    config.options.scales.yAxes[j].gridLines.color = this.readability.colors.grid;
+                    config.options.scales.yAxes[j].gridLines.zeroLineColor = this.readability.colors.gridZero;
                 }
             }
             
@@ -297,8 +335,8 @@
                 mode: 'index',
                 intersect: false,
                 backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                titleFontSize: 16,  // readability.fontSize.tooltip.title
-                bodyFontSize: 15,   // readability.fontSize.tooltip.body
+                titleFontSize: 13,  // readability.fontSize.tooltip.title
+                bodyFontSize: 12,   // readability.fontSize.tooltip.body
                 cornerRadius: 8,
                 displayColors: true,
                 xPadding: 12,       // readability.spacing.tooltipPadding.x
@@ -327,21 +365,21 @@
                         drawOnChartArea: false
                     },
                     ticks: {
-                        fontSize: 13,        // readability.fontSize.axis
-                        fontColor: '#374151', // readability.fontColor.primary
+                        fontSize: 12,        // readability.fontSize.axis
+                        fontColor: '#1F2937', // readability.fontColor.primary
                         maxTicksLimit: 7
                     }
                 }],
                 yAxes: [{
                     gridLines: {
-                        color: 'rgba(17,24,39,0.08)',
-                        zeroLineColor: 'rgba(17,24,39,0.2)',
+                        color: 'rgba(0,0,0,0.06)',
+                        zeroLineColor: 'rgba(0,0,0,0.15)',
                         drawBorder: false
                     },
                     ticks: {
-                        fontSize: 13,        // readability.fontSize.axis
-                        fontColor: '#374151', // readability.fontColor.primary
-                        maxTicksLimit: 6,
+                        fontSize: 12,        // readability.fontSize.axis
+                        fontColor: '#1F2937', // readability.fontColor.primary
+                        maxTicksLimit: 5,
                         callback: function(value) {
                             return window.Utils && window.Utils.formatShort ? window.Utils.formatShort(value) : value;
                         }
@@ -384,11 +422,11 @@
                     scales: {
                         xAxes: [{
                             gridLines: {
-                                color: 'rgba(17,24,39,0.08)'
+                                color: 'rgba(0,0,0,0.06)'
                             },
                             ticks: {
-                                fontSize: 16,
-                                fontColor: '#374151',
+                                fontSize: 12,
+                                fontColor: '#1F2937',
                                 callback: function(value) {
                                     return window.formatMoney ? window.formatMoney(value, 'RUB', 0) : value;
                                 }
@@ -399,8 +437,8 @@
                                 display: false
                             },
                             ticks: {
-                                fontSize: 16,
-                                fontColor: '#374151'
+                                fontSize: 12,
+                                fontColor: '#1F2937'
                             }
                         }]
                     }
@@ -413,41 +451,15 @@
             return new Chart(canvas, config);
         },
         
-        // Create debug element for DOM debugging
-        createDebugElement: function() {
-            var debugElement = document.createElement('div');
-            debugElement.id = 'debug-info';
-            debugElement.style.position = 'fixed';
-            debugElement.style.top = '10px';
-            debugElement.style.right = '10px';
-            debugElement.style.background = 'white';
-            debugElement.style.border = '1px solid #ccc';
-            debugElement.style.padding = '10px';
-            debugElement.style.maxWidth = '300px';
-            debugElement.style.maxHeight = '400px';
-            debugElement.style.overflow = 'auto';
-            debugElement.style.fontSize = '12px';
-            debugElement.style.zIndex = '9999';
-            debugElement.innerHTML = '<strong>Chart Debug Info:</strong><br>';
-            document.body.appendChild(debugElement);
-            return debugElement;
-        },
         
         // Create line chart for time series
         createLineChart: function(canvasId, data) {
             
             
-            // Add debug info to DOM
-            var debugElement = document.getElementById('debug-info') || this.createDebugElement();
-            debugElement.innerHTML += '<div>createLineChart called: ' + canvasId + '</div>';
-            debugElement.innerHTML += '<div>Chart.js type: ' + typeof Chart + '</div>';
-            
             var canvas = document.getElementById(canvasId);
             if (!canvas) {
-                debugElement.innerHTML += '<div>ERROR: Canvas not found: ' + canvasId + '</div>';
                 return null;
             }
-            debugElement.innerHTML += '<div>Canvas found: ' + canvasId + '</div>';
             
             // Validate input data
             if (!data || typeof data !== 'object') {
@@ -501,14 +513,10 @@
                 this.enableLegend(config, 'bottom');
             }
             
-            var debugElement = document.getElementById('debug-info');
             try {
                 var chart = new Chart(canvas, config);
-                if (debugElement) debugElement.innerHTML += '<div>Chart created successfully for: ' + canvasId + '</div>';
                 return chart;
             } catch (error) {
-                console.error('Error creating chart:', error);
-                if (debugElement) debugElement.innerHTML += '<div>ERROR creating chart: ' + error.message + '</div>';
                 return null;
             }
         },

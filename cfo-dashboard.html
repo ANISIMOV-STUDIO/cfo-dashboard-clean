@@ -40,25 +40,26 @@
       </div>
     </div>
     <div class="filters">
-      <!-- Пресеты периода -->
-      <div class="preset-group" role="tablist" aria-label="Быстрый период">
-        <button class="preset-btn active" data-preset="month">Месяц</button>
-        <button class="preset-btn" data-preset="quarter">Квартал</button>
-        <button class="preset-btn" data-preset="year">Год</button>
-      </div>
-      
-      <!-- Кастомный выбор дат -->
-      <div class="date-picker-group">
-        <div class="date-input-container">
-          <label for="date-from" class="date-label">От:</label>
-          <input type="text" id="date-from" class="date-input" placeholder="ДД.ММ.ГГГГ" maxlength="10" aria-label="Дата начала периода">
-          <button type="button" class="date-calendar-btn" aria-label="Открыть календарь" data-target="date-from">📅</button>
+      <!-- Row A: Presets + Date Range -->
+      <div class="filter-row filter-row-a">
+        <div class="preset-group" role="tablist" aria-label="Быстрый период">
+          <button class="preset-btn active" data-preset="month">Месяц</button>
+          <button class="preset-btn" data-preset="quarter">Квартал</button>
+          <button class="preset-btn" data-preset="year">Год</button>
         </div>
         
-        <div class="date-input-container">
-          <label for="date-to" class="date-label">До:</label>
-          <input type="text" id="date-to" class="date-input" placeholder="ДД.ММ.ГГГГ" maxlength="10" aria-label="Дата окончания периода">
-          <button type="button" class="date-calendar-btn" aria-label="Открыть календарь" data-target="date-to">📅</button>
+        <div class="date-picker-group">
+          <div class="date-input-container">
+            <label for="date-from" class="date-label">От:</label>
+            <input type="text" id="date-from" class="date-input" placeholder="ДД.ММ.ГГГГ" maxlength="10" aria-label="Дата начала периода">
+            <button type="button" class="date-calendar-btn" aria-label="Открыть календарь" data-target="date-from">📅</button>
+          </div>
+          
+          <div class="date-input-container">
+            <label for="date-to" class="date-label">До:</label>
+            <input type="text" id="date-to" class="date-input" placeholder="ДД.ММ.ГГГГ" maxlength="10" aria-label="Дата окончания периода">
+            <button type="button" class="date-calendar-btn" aria-label="Открыть календарь" data-target="date-to">📅</button>
+          </div>
         </div>
         
         <!-- Выпадающий календарь -->
@@ -75,62 +76,63 @@
         </div>
       </div>
       
-      <!-- Каскадные фильтры -->
-      <div class="select" data-select-id="companyId">
-        <button class="sel-btn">ООО Прогресс<span class="sel-arrow">▾</span></button>
-        <ul class="sel-menu" role="listbox">
-          <li class="sel-item" data-value="all">Все компании</li>
-          <li class="sel-item" data-value="progress">ООО Прогресс</li>
-        </ul>
-      </div>
-      
-      <div class="select" data-select-id="divisionId">
-        <button class="sel-btn">Все обособки<span class="sel-arrow">▾</span></button>
-        <ul class="sel-menu" role="listbox">
-          <li class="sel-item" data-value="all">Все обособки</li>
-          <li class="sel-item" data-value="center">Центр</li>
-          <li class="sel-item" data-value="south">Юг</li>
-          <li class="sel-item" data-value="north">Север</li>
-          <li class="sel-item" data-value="east">Восток</li>
-        </ul>
-      </div>
-      
-      <div class="select" data-select-id="managerId">
-        <button class="sel-btn">Все менеджеры<span class="sel-arrow">▾</span></button>
-        <ul class="sel-menu" role="listbox">
-          <li class="sel-item" data-value="all">Все менеджеры</li>
-          <li class="sel-item" data-value="ivanov">Иванов И.И.</li>
-          <li class="sel-item" data-value="sidorov">Сидоров С.С.</li>
-          <li class="sel-item" data-value="kozlov">Козлов К.К.</li>
-        </ul>
-      </div>
-      
-      <div class="select" data-select-id="counterpartyId">
-        <button class="sel-btn">Все контрагенты<span class="sel-arrow">▾</span></button>
-        <ul class="sel-menu" role="listbox">
-          <li class="sel-item" data-value="all">Все контрагенты</li>
-          <li class="sel-item" data-value="client1">Клиент А</li>
-          <li class="sel-item" data-value="client2">Клиент Б</li>
-          <li class="sel-item" data-value="client3">Клиент В</li>
-        </ul>
-      </div>
-      
-      <!-- Режимы отображения -->
-      <div class="select" data-select-id="units">
-        <button class="sel-btn">Абсолютные<span class="sel-arrow">▾</span></button>
-        <ul class="sel-menu" role="listbox">
-          <li class="sel-item" data-value="absolute">Абсолютные</li>
-          <li class="sel-item" data-value="percentage">Доли (100%)</li>
-        </ul>
-      </div>
-      
-      <div class="select" data-select-id="compare">
-        <button class="sel-btn">К пред. году<span class="sel-arrow">▾</span></button>
-        <ul class="sel-menu" role="listbox">
-          <li class="sel-item" data-value="none">Нет</li>
-          <li class="sel-item" data-value="prevYear">К пред. году</li>
-          <li class="sel-item" data-value="plan">К плану</li>
-        </ul>
+      <!-- Row B: Cascade Filters + Display Options -->
+      <div class="filter-row filter-row-b">
+        <div class="select" data-select-id="companyId" title="ООО Прогресс">
+          <button class="sel-btn">ООО Прогресс<span class="sel-arrow">▾</span></button>
+          <ul class="sel-menu" role="listbox">
+            <li class="sel-item" data-value="all">Все компании</li>
+            <li class="sel-item" data-value="progress">ООО Прогресс</li>
+          </ul>
+        </div>
+        
+        <div class="select" data-select-id="divisionId" title="Все обособки">
+          <button class="sel-btn">Все обособки<span class="sel-arrow">▾</span></button>
+          <ul class="sel-menu" role="listbox">
+            <li class="sel-item" data-value="all">Все обособки</li>
+            <li class="sel-item" data-value="center">Центр</li>
+            <li class="sel-item" data-value="south">Юг</li>
+            <li class="sel-item" data-value="north">Север</li>
+            <li class="sel-item" data-value="east">Восток</li>
+          </ul>
+        </div>
+        
+        <div class="select" data-select-id="managerId" title="Все менеджеры">
+          <button class="sel-btn">Все менеджеры<span class="sel-arrow">▾</span></button>
+          <ul class="sel-menu" role="listbox">
+            <li class="sel-item" data-value="all">Все менеджеры</li>
+            <li class="sel-item" data-value="ivanov">Иванов И.И.</li>
+            <li class="sel-item" data-value="sidorov">Сидоров С.С.</li>
+            <li class="sel-item" data-value="kozlov">Козлов К.К.</li>
+          </ul>
+        </div>
+        
+        <div class="select" data-select-id="counterpartyId" title="Все контрагенты">
+          <button class="sel-btn">Все контрагенты<span class="sel-arrow">▾</span></button>
+          <ul class="sel-menu" role="listbox">
+            <li class="sel-item" data-value="all">Все контрагенты</li>
+            <li class="sel-item" data-value="client1">Клиент А</li>
+            <li class="sel-item" data-value="client2">Клиент Б</li>
+            <li class="sel-item" data-value="client3">Клиент В</li>
+          </ul>
+        </div>
+        
+        <div class="select" data-select-id="units" title="Абсолютные">
+          <button class="sel-btn">Единицы: Абсолютные<span class="sel-arrow">▾</span></button>
+          <ul class="sel-menu" role="listbox">
+            <li class="sel-item" data-value="absolute">Абсолютные</li>
+            <li class="sel-item" data-value="percentage">Доли (100%)</li>
+          </ul>
+        </div>
+        
+        <div class="select" data-select-id="compare" title="К пред. году">
+          <button class="sel-btn">Сравнение: К пред. году<span class="sel-arrow">▾</span></button>
+          <ul class="sel-menu" role="listbox">
+            <li class="sel-item" data-value="none">Нет</li>
+            <li class="sel-item" data-value="prevYear">К пред. году</li>
+            <li class="sel-item" data-value="plan">К плану</li>
+          </ul>
+        </div>
       </div>
       
       <div class="interaction-status">
@@ -147,7 +149,6 @@
           <div class="card">
             <div class="card-header">
               <div class="card-title">Динамика выручки, млн ₽</div>
-              <div class="card-subtle">Факт · План · ПГ · Прогноз</div>
               <div class="chart-controls">
                 <div class="scenario-controls" data-chart-id="revenue-trend-chart">
                   <button class="scenario-btn active" data-scenario="fact" title="Показать только факт" aria-pressed="true">Факт</button>
@@ -164,7 +165,6 @@
           <div class="card">
             <div class="card-header">
               <div class="card-title">Маржинальность, %</div>
-              <div class="card-subtle">Валовая · EBITDA · Чистая</div>
               <div class="chart-controls">
                 <div class="scenario-controls" data-chart-id="margins-trend-chart">
                   <button class="scenario-btn active" data-scenario="fact" title="Показать только факт" aria-pressed="true">Факт</button>
