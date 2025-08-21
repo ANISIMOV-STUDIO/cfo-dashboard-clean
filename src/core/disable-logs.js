@@ -14,24 +14,23 @@
         error: console.error
     };
     
-    // Отключаем большинство логов, оставляем только критические ошибки
+    // Нормализация 6: Полное отключение логов в продакшене
     console.log = function() {
-        // Отключено для продакшена
+        // Полностью отключено
     };
     
     console.info = function() {
-        // Отключено для продакшена  
+        // Полностью отключено  
     };
     
     console.debug = function() {
-        // Отключено для продакшена
+        // Полностью отключено
     };
     
     console.warn = function() {
-        // Оставляем предупреждения только для критических ошибок
+        // Только критические ошибки Chart.js
         var message = Array.prototype.slice.call(arguments).join(' ');
-        if (message.indexOf('Chart') !== -1 && message.indexOf('not found') !== -1) {
-            // Показываем только критические ошибки графиков
+        if (message.indexOf('Chart') !== -1 && (message.indexOf('not found') !== -1 || message.indexOf('failed') !== -1)) {
             originalConsole.warn.apply(console, arguments);
         }
     };

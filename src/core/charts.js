@@ -436,7 +436,6 @@
         // Create line chart for time series
         createLineChart: function(canvasId, data) {
             
-            // Creating line chart
             
             // Add debug info to DOM
             var debugElement = document.getElementById('debug-info') || this.createDebugElement();
@@ -445,11 +444,9 @@
             
             var canvas = document.getElementById(canvasId);
             if (!canvas) {
-                // Canvas not found
                 debugElement.innerHTML += '<div>ERROR: Canvas not found: ' + canvasId + '</div>';
                 return null;
             }
-            // Canvas found
             debugElement.innerHTML += '<div>Canvas found: ' + canvasId + '</div>';
             
             // Validate input data
@@ -504,11 +501,9 @@
                 this.enableLegend(config, 'bottom');
             }
             
-            // Creating Chart.js instance
             var debugElement = document.getElementById('debug-info');
             try {
                 var chart = new Chart(canvas, config);
-                // Chart created successfully
                 if (debugElement) debugElement.innerHTML += '<div>Chart created successfully for: ' + canvasId + '</div>';
                 return chart;
             } catch (error) {

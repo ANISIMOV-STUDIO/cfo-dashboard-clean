@@ -346,6 +346,12 @@
         <button class="segment-tab" data-page="ar">Дебиторка</button>
       </div>
     </div>
+    
+    <!-- Toast/Notification Layer -->
+    <div class="toast-layer">
+      <div id="toast-container"></div>
+    </div>
+    
       </div>
     </div>
   </div>
@@ -353,27 +359,8 @@
   
   <!-- Chart.js verification -->
   <script>
-    console.log('Chart.js loaded, type:', typeof Chart);
-    if (typeof Chart !== 'undefined') {
-      console.log('Chart.js version:', Chart.version || 'unknown');
-      
-      // Create debug element immediately
-      var debugElement = document.createElement('div');
-      debugElement.id = 'debug-info';
-      debugElement.style.position = 'fixed';
-      debugElement.style.top = '10px';
-      debugElement.style.right = '10px';
-      debugElement.style.background = 'white';
-      debugElement.style.border = '1px solid #ccc';
-      debugElement.style.padding = '10px';
-      debugElement.style.maxWidth = '300px';
-      debugElement.style.maxHeight = '400px';
-      debugElement.style.overflow = 'auto';
-      debugElement.style.fontSize = '12px';
-      debugElement.style.zIndex = '9999';
-      debugElement.innerHTML = '<strong>Chart.js Debug:</strong><br>Chart.js type: ' + typeof Chart + '<br>Version: ' + (Chart.version || 'unknown') + '<br>';
-      document.body.appendChild(debugElement);
-    } else {
+    // Нормализация 6: Chart.js verification без логов
+    if (typeof Chart === 'undefined') {
       alert('Chart.js failed to load!');
     }
   </script>

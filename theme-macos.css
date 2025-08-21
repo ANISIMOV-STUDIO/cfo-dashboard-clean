@@ -26,6 +26,7 @@
   transform-origin: top center;
   background: transparent;
   pointer-events: auto;
+  position: relative;
 }
 
 :root {
@@ -81,7 +82,7 @@ body {
   min-width: 1360px;
 }
 
-/* Fixed Dashboard Container */
+/* Fixed Dashboard Container - Page Wrapper */
 .dashboard { 
   width: 1360px !important; 
   height: 860px !important; 
@@ -93,36 +94,65 @@ body {
   position: relative;
 }
 
-/* Жёсткая сетка шапки - фиксированные высоты */
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.page-wrapper .content {
+  flex: 1 1 auto;
+}
+
+/* Нормализация 1.1: Фиксированные высоты сетки */
 .header {
   height: 56px !important;
-  padding: 0 24px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
+  padding: 0 24px !important;
   flex-shrink: 0 !important;
-  border-bottom: 1px solid var(--border) !important;
+  border-bottom: 1px solid #eef2f7 !important;
 }
 
 .kpi-row {
   height: 96px !important;
-  padding: 0 24px !important;
   display: flex !important;
-  align-items: center !important;
   gap: 12px !important;
+  padding: 0 24px !important;
+  overflow: visible !important;
   flex-shrink: 0 !important;
-  overflow: hidden !important;
+  align-items: center !important;
 }
 
 .filters {
   height: 56px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  padding: 0 24px !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+  border-bottom: 1px solid #eef2f7 !important;
+  pointer-events: auto !important;
+}
+
+.content {
+  height: calc(860px - 56px - 96px - 56px - 36px) !important; /* Total - header - kpi - filters - footer */
   padding: 0 24px !important;
   display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  flex-shrink: 0 !important;
-  border-bottom: 1px solid var(--border) !important;
-  pointer-events: auto !important;
+  gap: 16px !important;
+  overflow-y: auto !important;
+  flex: 1 1 auto !important;
+}
+
+.content-left {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.content-right {
+  flex: 0 0 320px !important; /* алерты, не перекрывать графики */
 }
 
 /* KPI не выпирают над своим рядом */
@@ -157,22 +187,28 @@ main {
   position: relative !important;
 }
 
+/* Hotfix 0.2: Footer без белой полосы */
 .footer-tabs {
   position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
   right: 0 !important;
   width: 100% !important;
-  height: 48px !important;
-  padding: 12px 24px 0 !important;
+  height: 36px !important;
+  padding: 6px 0 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   flex-shrink: 0 !important;
-  border-top: 1px solid var(--border) !important;
-  background: var(--panel) !important;
+  background: transparent !important; /* убираем белый фон */
+  box-shadow: none !important; /* убираем тень */
   z-index: 100 !important;
-  box-shadow: 0 -2px 20px rgba(0,0,0,0.06) !important;
+}
+
+.footer-tabs .segmented {
+  background: #fff !important; /* только капсула */
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow) !important;
 }
 
 /* Header уже настроен выше в жёсткой сетке */
@@ -288,19 +324,27 @@ main {
   pointer-events: auto !important;
 }
 
+/* Нормализация 1.2: Селекты без переносов */
+.select, .sel-btn {
+  white-space: nowrap !important;
+}
+
 .sel-btn {
   height: 36px !important;
-  padding: 0 14px !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius-small) !important;
-  background: var(--panel) !important;
-  box-shadow: var(--shadow-subtle) !important;
+  padding: 0 12px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 2px 20px rgba(0,0,0,.06) !important;
   font-size: 14px !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  min-width: 120px !important;
+  max-width: 220px !important;
+  min-width: 180px !important;
+  text-overflow: ellipsis !important;
+  overflow: hidden !important;
   font-family: -apple-system, system-ui !important;
   pointer-events: auto !important;
   color: var(--text) !important;
@@ -308,9 +352,16 @@ main {
 }
 
 .sel-btn:hover {
-  box-shadow: var(--shadow) !important;
-  border-color: var(--accent) !important;
-  background: var(--accent-light) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.12) !important;
+}
+
+.sel-menu {
+  min-width: 220px !important;
+  max-width: 360px !important;
+}
+
+.filters .select {
+  flex: 0 0 auto !important; /* не сжимать */
 }
 
 /* Arrow is handled by JavaScript */
@@ -707,7 +758,7 @@ main {
 
 .chart-body { 
   height: calc(100% - 44px) !important; 
-  padding: 10px !important; 
+  padding: 8px 10px !important; 
   overflow: hidden !important;
 }
 
@@ -953,6 +1004,78 @@ button:not(:disabled):hover {
 button:disabled {
   opacity: 0.6 !important;
   cursor: not-allowed !important;
+}
+
+/* Hotfix 0.1: Toast/Notification Layer */
+.toast-layer {
+  position: absolute;
+  right: 24px;
+  top: 88px; /* не под KPI */
+  z-index: 3000;
+  pointer-events: none;
+  width: 360px;
+}
+
+.toast-layer .toast {
+  pointer-events: auto; /* кликабельные крестики */
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  border: 1px solid var(--border);
+  padding: 16px;
+  margin-bottom: 12px;
+  animation: toast-slide-in 0.3s ease;
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* запретить обрезание */
+.canvas, .content, .grid {
+  overflow: visible !important;
+}
+
+/* Hotfix 0.3: Исправить перекрытия кнопок */
+.app-scale-overlay {
+  pointer-events: none !important;
+}
+
+.alerts-column {
+  z-index: 1200 !important;
+}
+
+.content-right {
+  z-index: 1200 !important;
+}
+
+.chart-card {
+  z-index: 1100 !important;
+}
+
+.card {
+  z-index: 1100 !important;
+}
+
+/* Убедиться что кнопки кликабельны */
+.preset-btn,
+.scenario-btn,
+.sel-btn,
+.segment-tab,
+.date-calendar-btn,
+.realtime-btn,
+.refresh-btn,
+.reset-btn {
+  pointer-events: auto !important;
+  z-index: 1500 !important;
+  position: relative !important;
 }
 
 .comparison-controls,

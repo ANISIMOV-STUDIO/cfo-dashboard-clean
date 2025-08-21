@@ -179,16 +179,29 @@
             };
         },
         
-        // Форматирование чисел для отображения
+        // Форматирование чисел согласно ТЗ
         formatNumber: function(value) {
             if (value === 0) return '0';
+            if (Math.abs(value) >= 1000000000) {
+                return (value / 1000000000).toFixed(1) + ' млрд ₽';
+            }
             if (Math.abs(value) >= 1000000) {
-                return (value / 1000000).toFixed(1) + 'M';
+                return (value / 1000000).toFixed(1) + ' млн ₽';
             }
             if (Math.abs(value) >= 1000) {
-                return (value / 1000).toFixed(1) + 'K';
+                return (value / 1000).toFixed(1) + ' тыс ₽';
             }
-            return value.toFixed(0);
+            return value.toString() + ' ₽';
+        },
+        
+        // Короткое форматирование для осей
+        formatShort: function(value) {
+            value = +value || 0;
+            var abs = Math.abs(value);
+            if (abs >= 1000000000) return (value / 1000000000).toFixed(1) + ' млрд';
+            if (abs >= 1000000) return (value / 1000000).toFixed(1) + ' млн';
+            if (abs >= 1000) return (value / 1000).toFixed(1) + ' тыс.';
+            return value.toString();
         },
         
         // Создание линейного графика с улучшенным дизайном
@@ -686,28 +699,83 @@
     // Экспорт модуля
     window.ChartsRedesigned = ChartsRedesigned;
     
-    // Установка глобальных настроек Chart.js при загрузке
+    // Нормализация 2: Единый стиль Chart.js 2.9.4
     if (window.Chart) {
-        // Отключаем все плагины зума и панорамирования глобально
+        // Глобальные настройки для Chart.js 2.9.4
+        Chart.defaults.global.defaultFontFamily = '-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial';
+        Chart.defaults.global.defaultFontColor = '#1F2937';
+        Chart.defaults.global.defaultFontSize = 12; // базовый размер
+        
+        // Отключаем зум плагины глобально
         Chart.register = Chart.register || function() {};
-        
-        // Устанавливаем безопасные глобальные настройки для Chart.js 2.x
-        if (Chart.defaults && Chart.defaults.global) {
-            // Шрифт и цвет осей согласно ТЗ - 14px тёмно-серый #1F2937
-            Chart.defaults.global.defaultFontFamily = ChartsRedesigned.typography.fontFamily;
-            Chart.defaults.global.defaultFontSize = ChartsRedesigned.typography.sizes.axis;
-            Chart.defaults.global.defaultFontColor = ChartsRedesigned.colors.text.primary;
-            
-            // Настройки сетки
-            Chart.defaults.scale = Chart.defaults.scale || {};
-            Chart.defaults.scale.gridLines = Chart.defaults.scale.gridLines || {};
-            Chart.defaults.scale.gridLines.color = ChartsRedesigned.colors.grid;
-        }
-        
-        // Применяем глобальные настройки для всех типов графиков
-        Chart.defaults.font = Chart.defaults.font || {};
-        Chart.defaults.font.size = ChartsRedesigned.typography.sizes.axis;
-        Chart.defaults.color = ChartsRedesigned.colors.text.primary;
     }
+    
+    // Базовые настройки для всех графиков
+    ChartsRedesigned.getBaseConfig = function() {
+        return {
+            responsive: false,
+            maintainAspectRatio: false,
+            animation: { duration: 200 },
+            legend: { display: false }, // отключаем Chart.js легенду
+            tooltips: { 
+                mode: 'index', 
+                intersect: false, 
+                titleFontSize: 12, 
+                bodyFontSize: 12,
+                backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                titleFontColor: '#FFFFFF',
+                bodyFontColor: '#FFFFFF',
+                borderColor: '#E5E7EB',
+                borderWidth: 1,
+                cornerRadius: 8
+            },
+            layout: { 
+                padding: { 
+                    top: 8, 
+                    right: 24, 
+                    bottom: 18, 
+                    left: 28 
+                } 
+            },
+            elements: { 
+                point: { radius: 2, hitRadius: 6 }, 
+                line: { tension: 0.25, borderWidth: 2.5 } 
+            },
+            scales: {
+                xAxes: [{
+                    gridLines: { 
+                        color: 'rgba(0,0,0,.06)', 
+                        zeroLineColor: 'rgba(0,0,0,.12)' 
+                    },
+                    ticks: { 
+                        fontSize: 11, 
+                        maxTicksLimit: 7,
+                        fontColor: '#1F2937'
+                    }
+                }],
+                yAxes: [{
+                    gridLines: { 
+                        color: 'rgba(0,0,0,.06)', 
+                        zeroLineColor: 'rgba(0,0,0,.12)' 
+                    },
+                    ticks: {
+                        fontSize: 11,
+                        fontColor: '#1F2937',
+                        callback: function(value) {
+                            return ChartsRedesigned.formatShort(value);
+                        }
+                    }
+                }]
+            }
+        };
+    };
+    
+    // Настройки для баров
+    ChartsRedesigned.getBarConfig = function() {
+        var config = ChartsRedesigned.mergeOptions(ChartsRedesigned.getBaseConfig(), {});
+        config.scales.xAxes[0].barPercentage = 0.7;
+        config.scales.xAxes[0].categoryPercentage = 0.7;
+        return config;
+    };
     
 })();

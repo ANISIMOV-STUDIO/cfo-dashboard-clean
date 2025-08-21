@@ -181,12 +181,12 @@
             var datasets = [];
             var self = this;
             
-            // Get color scheme from charts redesigned module
-            var colors = window.ChartsRedesigned ? window.ChartsRedesigned.colors : {
-                fact: '#1F2937',
-                plan: '#0A84FF',
-                forecast: '#9CA3AF',
-                prevYear: '#9CA3AF'
+            // Нормализация 3: Цвета согласно ТЗ
+            var colors = {
+                fact: '#111827',      // Факт - тёмно-серый
+                plan: '#0A84FF',      // План - синий
+                forecast: '#6B7280',  // Прогноз - серый пунктир
+                prevYear: '#9CA3AF'   // ПГ - светло-серый
             };
             
             // Handle multi-dataset charts (like margins)
@@ -328,7 +328,7 @@
                                 backgroundColor: 'transparent',
                                 borderWidth: 2,
                                 borderCapStyle: 'round',
-                                borderDash: [3, 3],
+                                borderDash: [4, 4], // Прогноз - пунктир
                                 pointRadius: 3,
                                 pointHoverRadius: 5,
                                 pointBackgroundColor: colors.forecast,

@@ -50,6 +50,16 @@
             return formatted.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
         },
         
+        // Нормализация 2: Короткое форматирование для Chart.js осей
+        formatShort: function(value) {
+            value = +value || 0;
+            var abs = Math.abs(value);
+            if (abs >= 1000000000) return (value / 1000000000).toFixed(1) + ' млрд';
+            if (abs >= 1000000) return (value / 1000000).toFixed(1) + ' млн';
+            if (abs >= 1000) return (value / 1000).toFixed(1) + ' тыс.';
+            return value.toString();
+        },
+        
         formatPercent: function(value, precision) {
             precision = precision !== undefined ? precision : 1;
             if (!value && value !== 0) return '—';
@@ -345,5 +355,6 @@
     window.formatNumber = FormatUtils.formatNumber;
     window.formatPercent = FormatUtils.formatPercent;
     window.formatDate = FormatUtils.formatDate;
+    window.formatShort = FormatUtils.formatShort; // Нормализация 2: для Chart.js осей
     
 })();
