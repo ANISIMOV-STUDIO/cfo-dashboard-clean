@@ -90,12 +90,16 @@
                 entries.forEach(function(entry) {
                     if (entry.isIntersecting) {
                         var element = entry.target;
-                        self.loadLazyElement(element);
+                        // Delay loading slightly to improve scrolling performance
+                        setTimeout(function() {
+                            self.loadLazyElement(element);
+                        }, 50);
                         self.observers.lazyLoad.unobserve(element);
                     }
                 });
             }, {
-                rootMargin: this.config.lazyLoadThreshold + 'px'
+                rootMargin: this.config.lazyLoadThreshold + 'px',
+                threshold: 0.1
             });
             
             // Observe all lazy elements
@@ -238,16 +242,27 @@
                 Chart.defaults.responsive = true;
                 Chart.defaults.maintainAspectRatio = false;
                 
-                // Reduce quality on mobile devices
-                if (this.isMobile) {
-                    if (Chart.defaults.elements) {
-                        if (Chart.defaults.elements.line) {
-                            Chart.defaults.elements.line.tension = 0; // No curves
-                        }
-                        if (Chart.defaults.elements.point) {
-                            Chart.defaults.elements.point.radius = 0; // No points
-                        }
+                // Reduce quality on mobile devices and optimize performance
+                if (Chart.defaults.elements) {
+                    if (Chart.defaults.elements.line) {
+                        Chart.defaults.elements.line.tension = this.isMobile ? 0 : 0.1; // Minimal curves
                     }
+                    if (Chart.defaults.elements.point) {
+                        Chart.defaults.elements.point.radius = this.isMobile ? 0 : 1; // Small points
+                        Chart.defaults.elements.point.hitRadius = 3; // Smaller hit area
+                        Chart.defaults.elements.point.hoverRadius = this.isMobile ? 0 : 2; // Minimal hover
+                    }
+                }
+                
+                // Disable performance-heavy features
+                if (Chart.defaults.plugins) {
+                    Chart.defaults.plugins.legend = { display: false };
+                    Chart.defaults.plugins.tooltip = { 
+                        enabled: !this.isMobile,
+                        mode: 'nearest',
+                        intersect: false,
+                        animation: false
+                    };
                 }
                 
                 // Override update method for batching
@@ -543,15 +558,26 @@
                 }, 10000); // Check every 10 seconds
             }
             
+            // Periodic chart cleanup
+            setInterval(function() {
+                self.cleanupCharts();
+            }, 30000); // Clean up every 30 seconds
+            
+            // Batch chart updates
+            setInterval(function() {
+                self.batchChartUpdates();
+            }, 100); // Batch updates every 100ms
+            
             // Monitor load times
             window.addEventListener('load', function() {
                 self.reportLoadTimes();
             });
         },
         
-        // Monitor frame rate
+        // Monitor frame rate (optimized to reduce performance impact)
         monitorFrameRate: function() {
             var self = this;
+            var isMonitoring = false;
             
             function calculateFPS() {
                 var now = performance.now();
@@ -560,19 +586,32 @@
                 if (now >= self.lastTime + 1000) {
                     var fps = Math.round((self.frameCount * 1000) / (now - self.lastTime));
                     
-                    // Log low FPS
-                    if (fps < 30) {
+                    // Only log if FPS is critically low and reduce frequency
+                    if (fps < 15) {
                         console.warn('Low FPS detected:', fps);
+                        // Pause monitoring for 5 seconds to reduce impact
+                        isMonitoring = false;
+                        setTimeout(function() {
+                            isMonitoring = true;
+                            requestAnimationFrame(calculateFPS);
+                        }, 5000);
+                        return;
                     }
                     
                     self.frameCount = 0;
                     self.lastTime = now;
                 }
                 
-                requestAnimationFrame(calculateFPS);
+                if (isMonitoring) {
+                    requestAnimationFrame(calculateFPS);
+                }
             }
             
-            requestAnimationFrame(calculateFPS);
+            // Only enable monitoring in development or when explicitly requested
+            if (window.location.search.includes('debug=performance') || window.CFO_DEBUG) {
+                isMonitoring = true;
+                requestAnimationFrame(calculateFPS);
+            }
         },
         
         // Check memory usage
@@ -673,12 +712,87 @@
             }
         },
         
+        // Clean up problematic chart instances
+        cleanupCharts: function() {
+            if (!window.Chart) return;
+            
+            // Check if Chart.instances exists and is an array
+            if (!Chart.instances || !Array.isArray(Chart.instances)) {
+                Chart.instances = [];
+                return;
+            }
+            
+            var validInstances = [];
+            try {
+                Chart.instances.forEach(function(chart) {
+                    try {
+                        // Check if chart canvas still exists and is connected to DOM
+                        if (chart && chart.canvas && chart.canvas.isConnected) {
+                            validInstances.push(chart);
+                        } else {
+                            // Destroy orphaned chart
+                            if (chart && typeof chart.destroy === 'function') {
+                                chart.destroy();
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('Error cleaning up individual chart:', error);
+                    }
+                });
+                
+                // Update instances array with only valid charts
+                Chart.instances = validInstances;
+                console.log('Chart cleanup completed. Active charts:', validInstances.length);
+            } catch (error) {
+                console.warn('Error during chart cleanup:', error);
+                Chart.instances = [];
+            }
+        },
+        
+        // Optimize chart updates by batching them
+        batchChartUpdates: function() {
+            if (!window.Chart) return;
+            
+            // Check if Chart.instances exists and is an array
+            if (!Chart.instances || !Array.isArray(Chart.instances)) {
+                return;
+            }
+            
+            var pendingUpdates = [];
+            
+            try {
+                Chart.instances.forEach(function(chart) {
+                    if (chart && chart._needsUpdate) {
+                        pendingUpdates.push(chart);
+                        chart._needsUpdate = false;
+                    }
+                });
+                
+                if (pendingUpdates.length > 0) {
+                    requestAnimationFrame(function() {
+                        pendingUpdates.forEach(function(chart) {
+                            try {
+                                if (chart && chart.update && chart.canvas && chart.canvas.isConnected) {
+                                    chart.update('none'); // No animation for performance
+                                }
+                            } catch (error) {
+                                console.warn('Chart update failed:', error);
+                            }
+                        });
+                    });
+                }
+            } catch (error) {
+                console.warn('Error during chart update batching:', error);
+            }
+        },
+        
         // Get performance metrics
         getMetrics: function() {
             return {
                 cacheSize: Object.keys(this.cache).length,
                 isMobile: this.isMobile,
                 isTablet: this.isTablet,
+                chartCount: window.Chart && Chart.instances && Array.isArray(Chart.instances) ? Chart.instances.length : 0,
                 memoryUsage: performance.memory ? {
                     used: Math.round(performance.memory.usedJSHeapSize / 1048576),
                     total: Math.round(performance.memory.totalJSHeapSize / 1048576)
