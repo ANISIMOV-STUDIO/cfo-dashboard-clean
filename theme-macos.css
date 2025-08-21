@@ -29,18 +29,37 @@
 }
 
 :root {
-  --bg: linear-gradient(135deg, #f5f5f7 0%, #eff3f6 100%);
+  /* macOS-style colors and design tokens */
+  --bg: linear-gradient(180deg, #f7f8fa 0%, #eff3f6 100%);
   --panel: #ffffff;
-  --text: #111827;
-  --muted: #6B7280;
-  --accent: #0A84FF;
-  --accent-hover: #2563EB;
-  --shadow: 0 2px 20px rgba(0,0,0,0.06);
-  --shadow-hover: 0 8px 32px rgba(0,0,0,0.12);
-  --radius: 16px;
-  --radius-button: 12px;
-  --radius-small: 10px;
-  --border: #e5e7eb;
+  --surface: #fafafa;
+  --text: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --accent: #007aff; /* iOS/macOS blue */
+  --accent-hover: #005ecb;
+  --accent-light: rgba(0, 122, 255, 0.1);
+  
+  /* macOS-style shadows */
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-focus: 0 0 0 4px rgba(0, 122, 255, 0.15);
+  
+  /* Consistent border radius - macOS style */
+  --radius-large: 16px;
+  --radius: 12px;
+  --radius-small: 8px;
+  --radius-tiny: 6px;
+  
+  /* Borders */
+  --border: rgba(0, 0, 0, 0.08);
+  --border-light: rgba(0, 0, 0, 0.04);
+  
+  /* Status colors */
+  --success: #28a745;
+  --warning: #ff9500;
+  --error: #ff3b30;
 }
 
 /* Base & Reset */
@@ -132,12 +151,18 @@ body {
 
 main {
   flex: 1 !important;
-  overflow: hidden !important;
+  overflow: auto !important;
   padding: 24px !important;
+  padding-bottom: 72px !important; /* Extra space for fixed footer */
   position: relative !important;
 }
 
 .footer-tabs {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
   height: 48px !important;
   padding: 12px 24px 0 !important;
   display: flex !important;
@@ -145,6 +170,9 @@ main {
   justify-content: center !important;
   flex-shrink: 0 !important;
   border-top: 1px solid var(--border) !important;
+  background: var(--panel) !important;
+  z-index: 100 !important;
+  box-shadow: 0 -2px 20px rgba(0,0,0,0.06) !important;
 }
 
 /* Header уже настроен выше в жёсткой сетке */
@@ -178,21 +206,9 @@ main {
   flex-shrink: 0 !important;
 }
 
-.footer-tabs {
-  height: 36px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 10px 0 0 !important;
-  flex-shrink: 0 !important;
-}
+/* Removed duplicate footer-tabs definition */
 
-main { 
-  flex: 1 1 0 !important; 
-  overflow: hidden !important; 
-  height: 588px !important;
-  max-height: 588px !important;
-}
+/* Removed duplicate main definition - using the one above with proper footer spacing and scrolling */
 
 /* Header Typography - macOS Style */
 .header-left { flex-shrink: 0; }
@@ -210,16 +226,23 @@ main {
   line-height: 1.3;
 }
 
-/* KPI Cards */
+/* KPI Cards - macOS Style */
 .kpi { 
   flex: 1 0 0 !important; 
-  background: #fff !important; 
-  border-radius: 16px !important; 
-  box-shadow: 0 2px 20px rgba(0,0,0,.06) !important; 
-  padding: 12px 16px !important; 
+  background: var(--panel) !important; 
+  border-radius: var(--radius) !important; 
+  box-shadow: var(--shadow) !important; 
+  border: 1px solid var(--border-light) !important;
+  padding: 16px 20px !important; 
   display: flex !important;
   flex-direction: column !important;
   justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.kpi:hover {
+  box-shadow: var(--shadow-hover) !important;
+  transform: translateY(-1px) !important;
 }
 
 .kpi .val {
@@ -267,11 +290,11 @@ main {
 
 .sel-btn {
   height: 36px !important;
-  padding: 0 12px !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 10px !important;
-  background: #fff !important;
-  box-shadow: 0 2px 20px rgba(0,0,0,.06) !important;
+  padding: 0 14px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-small) !important;
+  background: var(--panel) !important;
+  box-shadow: var(--shadow-subtle) !important;
   font-size: 14px !important;
   cursor: pointer !important;
   display: flex !important;
@@ -280,10 +303,14 @@ main {
   min-width: 120px !important;
   font-family: -apple-system, system-ui !important;
   pointer-events: auto !important;
+  color: var(--text) !important;
+  transition: all 0.2s ease !important;
 }
 
 .sel-btn:hover {
-  box-shadow: 0 8px 32px rgba(0,0,0,.12) !important;
+  box-shadow: var(--shadow) !important;
+  border-color: var(--accent) !important;
+  background: var(--accent-light) !important;
 }
 
 /* Arrow is handled by JavaScript */
@@ -378,6 +405,186 @@ main {
   box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3); 
 }
 
+/* Custom Date Picker - macOS Style */
+.date-picker-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+}
+
+.date-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.date-input {
+  width: 100px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: #fff;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
+}
+
+.date-input.error {
+  border-color: #DC2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.date-calendar-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+
+.date-calendar-btn:hover {
+  opacity: 1;
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+}
+
+/* Custom Calendar Popup */
+.custom-calendar {
+  position: absolute;
+  top: 45px;
+  left: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  padding: 16px;
+  z-index: 1000;
+  min-width: 280px;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+.custom-calendar.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.calendar-nav {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--muted);
+  transition: all 0.2s ease;
+}
+
+.calendar-nav:hover {
+  background: rgba(10, 132, 255, 0.1);
+  color: var(--accent);
+}
+
+.calendar-month-year {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text);
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.calendar-weekdays span {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  padding: 8px 4px;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.calendar-day {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+
+.calendar-day:hover {
+  background: rgba(10, 132, 255, 0.1);
+}
+
+.calendar-day.other-month {
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.calendar-day.today {
+  background: rgba(10, 132, 255, 0.1);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.calendar-day.selected {
+  background: var(--accent);
+  color: white;
+  font-weight: 600;
+}
+
 /* Navigation Tabs */
 .segmented { 
   display: inline-flex !important; 
@@ -462,16 +669,20 @@ main {
 .card { 
   flex: 0 0 calc(50% - 8px) !important; 
   height: 250px !important;
-  background: #fff !important; 
-  border-radius: 16px !important; 
-  box-shadow: 0 2px 20px rgba(0,0,0,.06) !important; 
+  background: var(--panel) !important; 
+  border-radius: var(--radius-large) !important; 
+  box-shadow: var(--shadow) !important; 
+  border: 1px solid var(--border-light) !important;
   display: flex !important; 
   flex-direction: column !important;
   overflow: hidden !important;
+  transition: all 0.2s ease !important;
 }
 
 .card:hover {
-  box-shadow: var(--shadow-hover);
+  box-shadow: var(--shadow-hover) !important;
+  transform: translateY(-2px) !important;
+  border-color: var(--border) !important;
 }
 
 .card-header { 
@@ -654,6 +865,94 @@ select:focus-visible {
   align-items: center !important;
   margin-top: 12px !important;
   gap: 12px !important;
+}
+
+/* Scenario Controls - New Design */
+.scenario-controls {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  background: rgba(0, 0, 0, 0.02) !important;
+  border-radius: 8px !important;
+  padding: 2px !important;
+  border: 1px solid var(--border) !important;
+}
+
+.scenario-btn {
+  height: 28px !important;
+  padding: 0 12px !important;
+  border: none !important;
+  background: transparent !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  color: var(--muted) !important;
+  white-space: nowrap !important;
+  font-family: inherit !important;
+}
+
+.scenario-btn:hover {
+  background: rgba(10, 132, 255, 0.08) !important;
+  color: var(--accent) !important;
+}
+
+.scenario-btn.active {
+  background: var(--accent) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(10, 132, 255, 0.3) !important;
+}
+
+.scenario-btn:focus {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
+}
+
+/* Accessibility Improvements - Focus States */
+.preset-btn:focus,
+.sel-btn:focus,
+.segment-tab:focus,
+.date-input:focus,
+.date-calendar-btn:focus {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.1) !important;
+}
+
+/* High contrast focus for better visibility */
+.preset-btn:focus-visible,
+.scenario-btn:focus-visible,
+.sel-btn:focus-visible,
+.segment-tab:focus-visible,
+.date-input:focus-visible,
+.date-calendar-btn:focus-visible {
+  outline: 3px solid var(--accent) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 6px rgba(10, 132, 255, 0.15) !important;
+}
+
+/* Keyboard navigation styles */
+*:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px !important;
+  border-radius: 4px !important;
+}
+
+/* Remove default browser focus outlines for mouse users */
+*:focus:not(:focus-visible) {
+  outline: none !important;
+}
+
+/* Button hover states for accessibility */
+button:not(:disabled):hover {
+  cursor: pointer !important;
+}
+
+button:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
 }
 
 .comparison-controls,

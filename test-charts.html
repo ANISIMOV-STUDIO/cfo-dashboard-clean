@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест графиков CFO Dashboard</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5;
+        }
+        .test-container { 
+            background: white; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .chart-container { 
+            width: 100%; 
+            height: 300px; 
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        h2 { color: #333; }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 4px;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.warning { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>Тест графиков CFO Dashboard</h1>
+    
+    <div class="test-container">
+        <h2>Статус загрузки модулей</h2>
+        <div id="modules-status"></div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Тест 1: Линейный график (доходы)</h2>
+        <div class="chart-container">
+            <canvas id="test-line-chart"></canvas>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Тест 2: Мульти-линейный график (маржи)</h2>
+        <div class="chart-container">
+            <canvas id="test-margins-chart"></canvas>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Тест 3: Столбчатый график</h2>
+        <div class="chart-container">
+            <canvas id="test-bar-chart"></canvas>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Тест 4: Waterfall график</h2>
+        <div class="chart-container">
+            <canvas id="test-waterfall-chart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Подключаем стили -->
+    <link rel="stylesheet" href="src/core/charts-styles.css">
+    <link rel="stylesheet" href="src/core/charts-fonts-fix.css">
+    
+    <!-- Подключаем модули в правильном порядке -->
+    <script src="lib/Chart-2.9.4.min.js"></script>
+    <script src="src/core/charts-redesigned.js"></script>
+    <script src="src/core/charts-loader.js"></script>
+    <script src="src/core/renderers.js"></script>
+    
+    <script>
+        // Функция для показа статуса
+        function showStatus(message, type) {
+            var statusDiv = document.getElementById('modules-status');
+            statusDiv.innerHTML += '<div class="status ' + type + '">' + message + '</div>';
+        }
+        
+        // Проверяем загрузку модулей
+        function checkModules() {
+            showStatus('Chart.js: ' + (window.Chart ? '✅ Загружен' : '❌ Не загружен'), 
+                      window.Chart ? 'success' : 'error');
+            showStatus('ChartsRedesigned: ' + (window.ChartsRedesigned ? '✅ Загружен' : '⚠️ Не загружен'), 
+                      window.ChartsRedesigned ? 'success' : 'warning');
+            showStatus('ChartsLoader: ' + (window.ChartsLoader ? '✅ Загружен' : '❌ Не загружен'), 
+                      window.ChartsLoader ? 'success' : 'error');
+            showStatus('PageRenderers: ' + (window.PageRenderers ? '✅ Загружен' : '❌ Не загружен'), 
+                      window.PageRenderers ? 'success' : 'error');
+        }
+        
+        // Тестируем графики
+        function testCharts() {
+            if (!window.PageRenderers) {
+                showStatus('❌ PageRenderers не доступен, тесты невозможны', 'error');
+                return;
+            }
+            
+            try {
+                // Тест 1: Простой линейный график
+                var lineChart = window.PageRenderers.safeCreateChart('line', 'test-line-chart', {
+                    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май'],
+                    fact: [100000, 120000, 110000, 135000, 125000],
+                    plan: [105000, 115000, 115000, 130000, 130000]
+                });
+                
+                showStatus('Тест 1 (линейный): ' + (lineChart ? '✅ Успешно' : '❌ Ошибка'), 
+                          lineChart ? 'success' : 'error');
+                
+                // Тест 2: Мульти-линейный график (маржи)
+                var marginsChart = window.PageRenderers.safeCreateChart('line', 'test-margins-chart', {
+                    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май'],
+                    datasets: [
+                        { label: 'Валовая маржа', data: [45.2, 46.1, 44.8, 47.3, 46.5] },
+                        { label: 'EBITDA', data: [18.3, 19.1, 17.9, 19.5, 18.8] },
+                        { label: 'Чистая маржа', data: [12.1, 12.8, 11.5, 13.2, 12.6] }
+                    ]
+                });
+                
+                showStatus('Тест 2 (мульти-линейный): ' + (marginsChart ? '✅ Успешно' : '❌ Ошибка'), 
+                          marginsChart ? 'success' : 'error');
+                
+                // Тест 3: Столбчатый график
+                var barChart = window.PageRenderers.safeCreateChart('bar', 'test-bar-chart', {
+                    labels: ['Москва', 'СПб', 'Екатеринбург', 'Новосибирск'],
+                    values: [45600000, 32400000, 18900000, 21700000],
+                    horizontal: false
+                });
+                
+                showStatus('Тест 3 (столбчатый): ' + (barChart ? '✅ Успешно' : '❌ Ошибка'), 
+                          barChart ? 'success' : 'error');
+                
+                // Тест 4: Waterfall график
+                var waterfallChart = window.PageRenderers.safeCreateChart('waterfall', 'test-waterfall-chart', {
+                    labels: ['Начало', 'Доходы', 'Расходы', 'Инвестиции', 'Конец'],
+                    values: [1000000, 500000, -200000, -100000, 1200000],
+                    startValue: 1000000
+                });
+                
+                showStatus('Тест 4 (waterfall): ' + (waterfallChart ? '✅ Успешно' : '❌ Ошибка'), 
+                          waterfallChart ? 'success' : 'error');
+                
+                // Дополнительная проверка размеров шрифтов
+                setTimeout(function() {
+                    checkFontSizes();
+                }, 2000);
+                
+            } catch (error) {
+                showStatus('❌ Ошибка при тестировании: ' + error.message, 'error');
+                console.error('Test error:', error);
+            }
+        }
+        
+        // Проверка размеров шрифтов
+        function checkFontSizes() {
+            showStatus('🔍 Проверка размеров шрифтов...', 'warning');
+            
+            try {
+                // Проверяем глобальные настройки Chart.js
+                if (window.Chart && window.Chart.defaults && window.Chart.defaults.global) {
+                    var fontSize = window.Chart.defaults.global.defaultFontSize;
+                    showStatus('Глобальный размер шрифта Chart.js: ' + fontSize + 'px', 
+                              fontSize >= 14 ? 'success' : 'warning');
+                }
+                
+                // Проверяем элементы на странице
+                var canvases = document.querySelectorAll('canvas');
+                showStatus('Найдено canvas элементов: ' + canvases.length, 'success');
+                
+                // Проверяем CSS переменные
+                var computedStyle = getComputedStyle(document.body);
+                var chartFontSize = computedStyle.getPropertyValue('--chart-font-size');
+                if (chartFontSize) {
+                    showStatus('CSS переменная --chart-font-size: ' + chartFontSize, 'success');
+                }
+                
+                showStatus('✅ Проверка шрифтов завершена. Все графики должны иметь читаемые шрифты размером 14px', 'success');
+                
+            } catch (error) {
+                showStatus('⚠️ Ошибка при проверке шрифтов: ' + error.message, 'warning');
+            }
+        }
+        
+        // Запускаем тесты после загрузки страницы
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                checkModules();
+                setTimeout(testCharts, 1000);
+            }, 500);
+        });
+    </script>
+</body>
+</html>

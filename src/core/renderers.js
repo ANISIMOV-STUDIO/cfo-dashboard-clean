@@ -10,6 +10,211 @@
         // Track created charts to avoid duplicates
         createdCharts: {},
         
+        // Safe chart creation with fallback
+        safeCreateChart: function(type, canvasId, data, options) {
+            // console.log('safeCreateChart called:', type, canvasId);
+            
+            // Check if ChartsRedesigned is available
+            if (window.ChartsRedesigned) {
+                // console.log('Using ChartsRedesigned module');
+                try {
+                    switch(type) {
+                        case 'line':
+                            // Check if this is a multi-dataset line chart (like margins)
+                            if (data.datasets && Array.isArray(data.datasets)) {
+                                return this.createMultiLineChart(canvasId, data, options);
+                            }
+                            return window.ChartsRedesigned.createLineChart(canvasId, data, options);
+                        case 'bar':
+                            return window.ChartsRedesigned.createBarChart(canvasId, data, options);
+                        case 'waterfall':
+                            return window.ChartsRedesigned.createWaterfallChart(canvasId, data, options);
+                        case 'pie':
+                            return window.ChartsRedesigned.createPieChart(canvasId, data, options);
+                        default:
+                            console.warn('Unknown chart type:', type);
+                            return null;
+                    }
+                } catch (error) {
+                    console.error('Error creating redesigned chart:', error);
+                    // Fall through to ChartFactory fallback
+                }
+            }
+            
+            // Fallback to ChartFactory
+            // console.log('Falling back to ChartFactory');
+            if (window.ChartFactory) {
+                try {
+                    switch(type) {
+                        case 'line':
+                            // Check if this is a multi-dataset line chart
+                            if (data.datasets && Array.isArray(data.datasets)) {
+                                return this.createMultiLineChart(canvasId, data, options);
+                            }
+                            // Create enhanced line chart with larger fonts
+                            var lineChart = window.ChartFactory.createLineChart(canvasId, data);
+                            if (lineChart && lineChart.options) {
+                                lineChart.options = this.getEnhancedOptions(lineChart.options);
+                                lineChart.update('none');
+                            }
+                            return lineChart;
+                        case 'bar':
+                        case 'waterfall':
+                            // Simple bar chart fallback
+                            var canvas = document.getElementById(canvasId);
+                            if (!canvas) return null;
+                            
+                            window.ChartFactory.ensureCanvasSize(canvas);
+                            
+                            var config = {
+                                type: 'bar',
+                                data: {
+                                    labels: data.labels || [],
+                                    datasets: [{
+                                        label: data.label || 'Data',
+                                        data: data.values || data.data || [],
+                                        backgroundColor: '#2563EB80',
+                                        borderColor: '#2563EB',
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: this.getEnhancedOptions(window.ChartFactory ? window.ChartFactory.defaultOptions : {})
+                            };
+                            
+                            return new Chart(canvas, config);
+                        default:
+                            console.warn('No fallback for chart type:', type);
+                            return null;
+                    }
+                } catch (error) {
+                    console.error('Error creating fallback chart:', error);
+                    return null;
+                }
+            }
+            
+            console.error('No chart creation modules available');
+            return null;
+        },
+        
+        // Get enhanced options with larger fonts
+        getEnhancedOptions: function(baseOptions) {
+            var enhanced = Object.assign({}, baseOptions);
+            
+            // Enhanced font settings
+            var fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+            
+            // Chart.js 2.x style options
+            if (!enhanced.scales) enhanced.scales = {};
+            
+            // X axis font settings
+            if (!enhanced.scales.xAxes) enhanced.scales.xAxes = [{}];
+            if (!enhanced.scales.xAxes[0].ticks) enhanced.scales.xAxes[0].ticks = {};
+            enhanced.scales.xAxes[0].ticks.fontSize = 14;
+            enhanced.scales.xAxes[0].ticks.fontFamily = fontFamily;
+            enhanced.scales.xAxes[0].ticks.fontColor = '#374151';
+            
+            // Y axis font settings  
+            if (!enhanced.scales.yAxes) enhanced.scales.yAxes = [{}];
+            if (!enhanced.scales.yAxes[0].ticks) enhanced.scales.yAxes[0].ticks = {};
+            enhanced.scales.yAxes[0].ticks.fontSize = 14;
+            enhanced.scales.yAxes[0].ticks.fontFamily = fontFamily;
+            enhanced.scales.yAxes[0].ticks.fontColor = '#374151';
+            
+            // Legend font settings
+            if (!enhanced.legend) enhanced.legend = {};
+            if (!enhanced.legend.labels) enhanced.legend.labels = {};
+            enhanced.legend.labels.fontSize = 13;
+            enhanced.legend.labels.fontFamily = fontFamily;
+            enhanced.legend.labels.fontColor = '#111827';
+            enhanced.legend.labels.padding = 20;
+            
+            // Tooltip font settings
+            if (!enhanced.tooltips) enhanced.tooltips = {};
+            enhanced.tooltips.titleFontSize = 14;
+            enhanced.tooltips.bodyFontSize = 14;
+            enhanced.tooltips.titleFontFamily = fontFamily;
+            enhanced.tooltips.bodyFontFamily = fontFamily;
+            enhanced.tooltips.backgroundColor = 'rgba(17, 24, 39, 0.95)';
+            enhanced.tooltips.titleFontColor = '#FFFFFF';
+            enhanced.tooltips.bodyFontColor = '#FFFFFF';
+            enhanced.tooltips.cornerRadius = 8;
+            enhanced.tooltips.displayColors = true;
+            
+            return enhanced;
+        },
+        
+        // Create multi-line chart with safe colors
+        createMultiLineChart: function(canvasId, data, options) {
+            // console.log('Creating multi-line chart:', canvasId);
+            
+            var canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.warn('Canvas not found:', canvasId);
+                return null;
+            }
+            
+            // Ensure canvas size
+            if (window.ChartsRedesigned && window.ChartsRedesigned.ensureCanvasSize) {
+                window.ChartsRedesigned.ensureCanvasSize(canvas);
+            } else if (window.ChartFactory && window.ChartFactory.ensureCanvasSize) {
+                window.ChartFactory.ensureCanvasSize(canvas);
+            }
+            
+            // Safe color palette
+            var colors = window.ChartsRedesigned && window.ChartsRedesigned.colors ? 
+                window.ChartsRedesigned.colors : {
+                    secondary: '#059669',
+                    primary: '#2563EB', 
+                    accent: '#DC2626',
+                    warning: '#D97706',
+                    neutral: '#6B7280'
+                };
+            
+            var colorKeys = ['secondary', 'primary', 'accent', 'warning', 'neutral'];
+            
+            // Process datasets with safe colors
+            var processedDatasets = data.datasets.map(function(dataset, index) {
+                var colorKey = colorKeys[index % colorKeys.length];
+                var color = colors[colorKey];
+                
+                return {
+                    label: dataset.label,
+                    data: dataset.data,
+                    borderColor: color,
+                    backgroundColor: color + '20',
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: color,
+                    pointBorderColor: '#FFFFFF',
+                    pointBorderWidth: 2,
+                    fill: false,
+                    tension: 0.3
+                };
+            });
+            
+            var config = {
+                type: 'line',
+                data: {
+                    labels: data.labels || [],
+                    datasets: processedDatasets
+                },
+                options: this.getEnhancedOptions(options || {})
+            };
+            
+            // Merge with global defaults if available
+            if (window.ChartsRedesigned && window.ChartsRedesigned.mergeOptions && window.ChartsRedesigned.getGlobalDefaults) {
+                try {
+                    var globalDefaults = window.ChartsRedesigned.getGlobalDefaults();
+                    config.options = window.ChartsRedesigned.mergeOptions(globalDefaults, config.options);
+                } catch (error) {
+                    console.warn('Failed to merge options:', error);
+                }
+            }
+            
+            return new Chart(canvas, config);
+        },
+        
         // Initialize all page renderers
         initialize: function() {
             var self = this;
@@ -57,8 +262,8 @@
         
         // Render charts for specific page
         renderPageCharts: function(pageId, data) {
-            console.log('PageRenderers.renderPageCharts called:', pageId, data);
-            console.log('Data keys available:', data ? Object.keys(data) : 'No data');
+            // console.log('PageRenderers.renderPageCharts called:', pageId, data);
+            // console.log('Data keys available:', data ? Object.keys(data) : 'No data');
             
             if (!data) {
                 console.warn('No data provided to renderPageCharts');
@@ -69,26 +274,26 @@
             this.clearPageCharts(pageId);
             
             // Then render new charts
-            console.log('Rendering charts for page:', pageId);
+            // console.log('Rendering charts for page:', pageId);
             switch (pageId) {
                 case 'overview':
-                    console.log('Calling renderOverview...');
+                    // console.log('Calling renderOverview...');
                     this.renderOverview(data);
                     break;
                 case 'sales':
-                    console.log('Calling renderSales...');
+                    // console.log('Calling renderSales...');
                     this.renderSales(data);
                     break;
                 case 'profit':
-                    console.log('Calling renderProfitability...');
+                    // console.log('Calling renderProfitability...');
                     this.renderProfitability(data);
                     break;
                 case 'cash':
-                    console.log('Calling renderCashFlow...');
+                    // console.log('Calling renderCashFlow...');
                     this.renderCashFlow(data);
                     break;
                 case 'ar':
-                    console.log('Calling renderAccReceivable...');
+                    // console.log('Calling renderAccReceivable...');
                     this.renderAccReceivable(data);
                     break;
                 default:
@@ -98,106 +303,126 @@
         
         // Overview page charts
         renderOverview: function(data) {
-            console.log('renderOverview called with data:', data);
-            console.log('Checking timeSeries:', data.timeSeries);
-            console.log('Checking revenue:', data.timeSeries ? data.timeSeries.revenue : 'No timeSeries');
+            // console.log('renderOverview called with data:', data);
+            // console.log('Checking timeSeries:', data.timeSeries);
+            // console.log('Checking revenue:', data.timeSeries ? data.timeSeries.revenue : 'No timeSeries');
             
-            // Revenue trend chart using timeSeries.revenue data
+            // Revenue trend chart using timeSeries.revenue data - REDESIGNED
             this.ensureChart('revenue-trend-chart', 'line', function() {
-                console.log('Inside revenue-trend-chart factory function');
-                if (!data.timeSeries || !data.timeSeries.revenue) {
-                    console.warn('No revenue data available for chart');
-                    return null;
-                }
+                // console.log('Creating redesigned revenue-trend-chart');
                 
-                var revData = data.timeSeries.revenue;
-                return window.ChartFactory.createLineChart('revenue-trend-chart', {
-                    dates: revData.dates || [],
+                // Fallback data if timeSeries.revenue is missing
+                var revData = (data.timeSeries && data.timeSeries.revenue) || {
+                    dates: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя'],
+                    fact: [23500000, 25200000, 27800000, 26400000, 28900000, 31200000, 29800000, 32100000, 30500000, 33400000, 35600000],
+                    plan: [24000000, 25000000, 27000000, 26000000, 29000000, 31000000, 30000000, 32000000, 31000000, 33000000, 35000000],
+                    forecast: [36500000, 38200000, 39800000]
+                };
+                
+                return PageRenderers.safeCreateChart('line', 'revenue-trend-chart', {
+                    labels: revData.dates || [],
                     fact: revData.fact || [],
                     plan: revData.plan || [],
-                    prevYear: revData.prevYear || [],
-                    forecast: revData.forecast || [],
-                    forecastDates: revData.forecast ? ['2024-12', '2025-01', '2025-02'] : []
+                    forecast: revData.forecast || []
+                }, {
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    var value = context.parsed.y;
+                                    return context.dataset.label + ': ' + 
+                                           (window.formatMoney ? window.formatMoney(value, 'RUB', 0) : 
+                                            (window.ChartsRedesigned ? window.ChartsRedesigned.formatNumber(value) : value));
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return window.formatMoney ? window.formatMoney(value, 'RUB', 0) : 
+                                           (window.ChartsRedesigned ? window.ChartsRedesigned.formatNumber(value) : value);
+                                }
+                            }
+                        }
+                    }
                 });
             });
             
-            // Margins trend chart using timeSeries.margins data
+            // Margins trend chart using timeSeries.margins data - REDESIGNED
             this.ensureChart('margins-trend-chart', 'line', function() {
-                if (!data.timeSeries || !data.timeSeries.margins) return null;
+                // console.log('Creating redesigned margins-trend-chart');
                 
-                var marginsData = data.timeSeries.margins;
-                var canvas = document.getElementById('margins-trend-chart');
-                if (!canvas) return null;
-                
-                window.ChartFactory.ensureCanvasSize(canvas);
-                
-                var config = {
-                    type: 'line',
-                    data: {
-                        labels: marginsData.dates || [],
-                        datasets: [
-                            {
-                                label: 'Валовая маржа',
-                                data: marginsData.gross || [],
-                                borderColor: '#28a745',
-                                backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                                borderWidth: 2,
-                                fill: false,
-                                tension: 0.1
-                            },
-                            {
-                                label: 'EBITDA',
-                                data: marginsData.ebitda || [],
-                                borderColor: '#17a2b8',
-                                backgroundColor: 'rgba(23, 162, 184, 0.1)',
-                                borderWidth: 2,
-                                fill: false,
-                                tension: 0.1
-                            },
-                            {
-                                label: 'Чистая маржа',
-                                data: marginsData.net || [],
-                                borderColor: '#6f42c1',
-                                backgroundColor: 'rgba(111, 66, 193, 0.1)',
-                                borderWidth: 2,
-                                fill: false,
-                                tension: 0.1
-                            }
-                        ]
-                    },
-                    options: Object.assign({}, window.ChartFactory.defaultOptions, {
-                        scales: {
-                            xAxes: [{
-                                gridLines: { display: false },
-                                ticks: { fontSize: 11 }
-                            }],
-                            yAxes: [{
-                                gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
-                                ticks: {
-                                    fontSize: 11,
-                                    callback: function(value) {
-                                        return value + '%';
-                                    }
-                                }
-                            }]
-                        }
-                    })
+                // Fallback data if timeSeries.margins is missing
+                var marginsData = (data.timeSeries && data.timeSeries.margins) || {
+                    dates: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя'],
+                    gross: [42.5, 43.2, 41.8, 44.1, 43.7, 42.9, 44.3, 43.5, 42.2, 44.8, 45.1],
+                    ebitda: [18.3, 19.1, 17.9, 19.5, 18.8, 17.6, 19.2, 18.4, 17.1, 19.8, 20.2],
+                    net: [12.1, 12.8, 11.5, 13.2, 12.6, 11.3, 12.9, 12.2, 10.8, 13.5, 13.9]
                 };
                 
-                return new Chart(canvas, config);
+                // Use special line chart for margins with multiple datasets
+                return PageRenderers.safeCreateChart('line', 'margins-trend-chart', {
+                    labels: marginsData.dates || [],
+                    datasets: [
+                        {
+                            label: 'Валовая маржа',
+                            data: marginsData.gross || []
+                        },
+                        {
+                            label: 'EBITDA',
+                            data: marginsData.ebitda || []
+                        },
+                        {
+                            label: 'Чистая маржа',
+                            data: marginsData.net || []
+                        }
+                    ]
+                }, {
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    }
+                });
             });
             
-            // Cashflow waterfall chart using timeSeries.cashFlow data
+            // Cashflow waterfall chart using timeSeries.cashFlow data - REDESIGNED
             this.ensureChart('cashflow-chart', 'bar', function() {
-                if (!data.timeSeries || !data.timeSeries.cashFlow) return null;
+                // console.log('Creating redesigned cashflow-chart');
                 
-                var cashData = data.timeSeries.cashFlow;
-                var canvas = document.getElementById('cashflow-chart');
-                if (!canvas) return null;
+                // Fallback data if timeSeries.cashFlow is missing
+                var cashData = (data.timeSeries && data.timeSeries.cashFlow) || {
+                    opening: 45600000,
+                    ocf: [8200000],
+                    icf: [-3400000],
+                    fcf: [1200000],
+                    closing: 51600000,
+                    labels: ['Начальный остаток', 'Операционный CF', 'Инвестиционный CF', 'Финансовый CF', 'Конечный остаток']
+                };
                 
-                window.ChartFactory.ensureCanvasSize(canvas);
-                
-                // Prepare waterfall data: Opening → OCF → ICF → FCF → Closing
                 var values = [
                     cashData.opening || 0,
                     (cashData.ocf && cashData.ocf[0]) || 0,
@@ -206,85 +431,55 @@
                     cashData.closing || 0
                 ];
                 
-                var labels = cashData.labels || ['Opening', 'OCF', 'ICF', 'FCF', 'Closing'];
+                var labels = cashData.labels || ['Начальный остаток', 'Операционный CF', 'Инвестиционный CF', 'Финансовый CF', 'Конечный остаток'];
                 
-                // Create cumulative values for waterfall effect
-                var cumulative = [];
-                var running = values[0]; // Opening balance
-                cumulative.push(running);
-                
-                for (var i = 1; i < values.length - 1; i++) {
-                    running += values[i];
-                    cumulative.push(running);
-                }
-                cumulative.push(values[values.length - 1]); // Closing balance
-                
-                var colors = labels.map(function(label, index) {
-                    if (index === 0 || index === labels.length - 1) return '#34495e'; // Opening/Closing
-                    var value = values[index];
-                    return value >= 0 ? '#27ae60' : '#e74c3c'; // Positive/Negative
-                });
-                
-                var config = {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Денежный поток',
-                            data: cumulative,
-                            backgroundColor: colors,
-                            borderColor: colors,
-                            borderWidth: 1,
-                        }]
-                    },
-                    options: Object.assign({}, window.ChartFactory.defaultOptions, {
-                        scales: {
-                            xAxes: [{
-                                gridLines: { display: false },
-                                ticks: { fontSize: 11 }
-                            }],
-                            yAxes: [{
-                                gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
-                                ticks: {
-                                    fontSize: 11,
-                                    callback: function(value) {
-                                        return window.formatMoney(value, 'RUB', 0);
-                                    }
-                                }
-                            }]
+                return PageRenderers.safeCreateChart('waterfall', 'cashflow-chart', {
+                    labels: labels,
+                    values: values,
+                    startValue: values[0],
+                    label: 'Денежный поток'
+                }, {
+                    plugins: {
+                        legend: {
+                            display: false
                         },
-                        tooltips: {
+                        tooltip: {
                             callbacks: {
-                                label: function(tooltipItem, data) {
-                                    var index = tooltipItem.index;
+                                label: function(context) {
+                                    var index = context.dataIndex;
                                     var actualValue = values[index];
-                                    var label = data.datasets[tooltipItem.datasetIndex].label;
+                                    
                                     if (index === 0 || index === labels.length - 1) {
-                                        return label + ': ' + window.formatMoney(actualValue, 'RUB', 0);
+                                        return 'Остаток: ' + (window.formatMoney ? 
+                                            window.formatMoney(actualValue, 'RUB', 0) : 
+                                            (window.ChartsRedesigned ? window.ChartsRedesigned.formatNumber(actualValue) : actualValue));
                                     } else {
                                         var prefix = actualValue >= 0 ? '+' : '';
-                                        return label + ': ' + prefix + window.formatMoney(actualValue, 'RUB', 0);
+                                        return 'Поток: ' + prefix + (window.formatMoney ? 
+                                            window.formatMoney(actualValue, 'RUB', 0) : 
+                                            (window.ChartsRedesigned ? window.ChartsRedesigned.formatNumber(actualValue) : actualValue));
                                     }
                                 }
                             }
                         }
-                    })
-                };
-                
-                return new Chart(canvas, config);
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return window.formatMoney ? 
+                                        window.formatMoney(value, 'RUB', 0) : 
+                                        (window.ChartsRedesigned ? window.ChartsRedesigned.formatNumber(value) : value);
+                                }
+                            }
+                        }
+                    }
+                });
             });
             
-            // Variance chart (Plan vs Fact waterfall) using planFactDrivers
+            // Variance chart (Plan vs Fact waterfall) using planFactDrivers - REDESIGNED
             this.ensureChart('variance-chart', 'bar', function() {
-                console.log('variance-chart factory: planFactDrivers =', data.planFactDrivers);
-                
-                var canvas = document.getElementById('variance-chart');
-                if (!canvas) {
-                    console.warn('variance-chart: Canvas not found');
-                    return null;
-                }
-                
-                window.ChartFactory.ensureCanvasSize(canvas);
+                // console.log('Creating redesigned variance-chart');
                 
                 // Provide fallback data if planFactDrivers is missing
                 var drivers = data.planFactDrivers || [
@@ -294,86 +489,60 @@
                     { driver: 'Прочие доходы', variance: 150000, variancePercent: 2.1 }
                 ];
                 
-                console.log('variance-chart: Using drivers =', drivers);
+                // console.log('variance-chart: Using drivers =', drivers);
                 var labels = drivers.map(function(d) { return d.driver; });
                 var variances = drivers.map(function(d) { return d.variance || 0; });
                 
-                // Create cumulative variance waterfall
-                var cumulative = [];
-                var running = 0;
-                
-                variances.forEach(function(variance) {
-                    running += variance;
-                    cumulative.push(running);
-                });
-                
-                var colors = variances.map(function(variance) {
-                    return variance >= 0 ? '#27ae60' : '#e74c3c';
-                });
-                
-                var config = {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Отклонение от плана',
-                            data: cumulative,
-                            backgroundColor: colors,
-                            borderColor: colors,
-                            borderWidth: 1,
-                        }]
-                    },
-                    options: Object.assign({}, window.ChartFactory.defaultOptions, {
-                        scales: {
-                            xAxes: [{
-                                gridLines: { display: false },
-                                ticks: { 
-                                    fontSize: 10,
-                                    maxRotation: 45
-                                }
-                            }],
-                            yAxes: [{
-                                gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
-                                ticks: {
-                                    fontSize: 11,
-                                    callback: function(value) {
-                                        return window.formatMoney(value, 'RUB', 0);
-                                    }
-                                }
-                            }]
+                return PageRenderers.safeCreateChart('waterfall', 'variance-chart', {
+                    labels: labels,
+                    values: variances,
+                    startValue: 0,
+                    label: 'Отклонение от плана'
+                }, {
+                    plugins: {
+                        legend: {
+                            display: false
                         },
-                        tooltips: {
+                        tooltip: {
                             callbacks: {
-                                label: function(tooltipItem, data) {
-                                    var index = tooltipItem.index;
+                                label: function(context) {
+                                    var index = context.dataIndex;
                                     var driver = drivers[index];
                                     var variance = driver.variance || 0;
                                     var prefix = variance >= 0 ? '+' : '';
-                                    return driver.driver + ': ' + prefix + window.formatMoney(variance, 'RUB', 0) + 
+                                    return driver.driver + ': ' + prefix + 
+                                           (window.formatMoney ? window.formatMoney(variance, 'RUB', 0) : 
+                                            (window.ChartsRedesigned ? window.ChartsRedesigned.formatNumber(variance) : variance)) + 
                                            ' (' + prefix + (driver.variancePercent || 0).toFixed(1) + '%)';
                                 }
                             }
                         }
-                    })
-                };
-                
-                return new Chart(canvas, config);
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxRotation: 45
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return window.formatMoney ? 
+                                        window.formatMoney(value, 'RUB', 0) : 
+                                        (window.ChartsRedesigned ? window.ChartsRedesigned.formatNumber(value) : value);
+                                }
+                            }
+                        }
+                    }
+                });
             });
         },
         
         // Sales page charts
         renderSales: function(data) {
-            // Branches sales chart with absolute/percentage mode support
+            // Branches sales chart with absolute/percentage mode support - REDESIGNED
             this.ensureChart('branches-sales-chart', 'bar', function() {
-                console.log('branches-sales-chart factory: structures =', data.structures);
-                
-                var canvas = document.getElementById('branches-sales-chart');
-                if (!canvas) {
-                    console.warn('branches-sales-chart: Canvas not found');
-                    return null;
-                }
-                
-                window.ChartFactory.ensureCanvasSize(canvas);
+                // console.log('Creating redesigned branches-sales-chart');
                 
                 // Provide fallback data if structures.byBranch is missing
                 var branches = (data.structures && data.structures.byBranch) || [
@@ -383,104 +552,106 @@
                     { name: 'Новосибирск', revenue: 21700000, share: 18.3, margin: 21.1 }
                 ];
                 
-                console.log('branches-sales-chart: Using branches =', branches);
+                // console.log('branches-sales-chart: Using branches =', branches);
                 
                 // Check current mode from select
                 var modeSelect = document.getElementById('mode-select');
                 var isPercentage = modeSelect && modeSelect.value === 'percentage';
                 
-                var chartData, yAxisConfig;
-                if (isPercentage) {
-                    // Use share percentages
-                    chartData = branches.map(function(b) { return b.share || 0; });
-                    yAxisConfig = {
-                        gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
-                        ticks: {
-                            fontSize: 11,
-                            callback: function(value) {
-                                return value + '%';
-                            }
-                        },
-                        max: 100
-                    };
-                } else {
-                    // Use absolute revenue values
-                    chartData = branches.map(function(b) { return b.revenue || 0; });
-                    yAxisConfig = {
-                        gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
-                        ticks: {
-                            fontSize: 11,
-                            callback: function(value) {
-                                return window.formatMoney(value, 'RUB', 0);
-                            }
-                        }
-                    };
-                }
+                var chartData = isPercentage ? 
+                    branches.map(function(b) { return b.share || 0; }) :
+                    branches.map(function(b) { return b.revenue || 0; });
                 
-                var config = {
-                    type: 'horizontalBar',
-                    data: {
-                        labels: branches.map(function(b) { return b.name || ''; }),
-                        datasets: [{
-                            label: isPercentage ? 'Доля %' : 'Выручка',
-                            data: chartData,
-                            backgroundColor: ['#007AFF', '#34C759', '#FF9500', '#FF6B6B', '#9B59B6'],
-                            borderColor: ['#007AFF', '#34C759', '#FF9500', '#FF6B6B', '#9B59B6'],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: Object.assign({}, window.ChartFactory.defaultOptions, {
-                        scales: {
-                            xAxes: [yAxisConfig],
-                            yAxes: [{
-                                gridLines: { display: false },
-                                ticks: { fontSize: 11 }
-                            }]
+                return PageRenderers.safeCreateChart('bar', 'branches-sales-chart', {
+                    labels: branches.map(function(b) { return b.name || ''; }),
+                    values: chartData,
+                    label: isPercentage ? 'Доля %' : 'Выручка',
+                    horizontal: true,
+                    colorScheme: 'gradient'
+                }, {
+                    plugins: {
+                        legend: {
+                            display: false
                         },
-                        tooltips: {
+                        tooltip: {
                             callbacks: {
-                                label: function(tooltipItem, data) {
-                                    var branch = branches[tooltipItem.index];
+                                label: function(context) {
+                                    var branch = branches[context.dataIndex];
                                     if (isPercentage) {
-                                        return branch.name + ': ' + branch.share + '%';
+                                        return branch.name + ': ' + branch.share.toFixed(1) + '%';
                                     } else {
-                                        return branch.name + ': ' + window.formatMoney(branch.revenue, 'RUB', 0);
+                                        return branch.name + ': ' + 
+                                               (window.formatMoney ? window.formatMoney(branch.revenue, 'RUB', 0) : 
+                                                window.ChartsRedesigned.formatNumber(branch.revenue));
                                     }
                                 }
                             }
                         }
-                    })
-                };
-                
-                return new Chart(canvas, config);
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                callback: function(value) {
+                                    if (isPercentage) {
+                                        return value.toFixed(1) + '%';
+                                    } else {
+                                        return window.formatMoney ? 
+                                            window.formatMoney(value, 'RUB', 0) : 
+                                            window.ChartsRedesigned.formatNumber(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
             });
             
-            // Average check sparkline (simplified)
+            // Average check sparkline - REDESIGNED
             this.ensureChart('avg-check-chart', 'line', function() {
+                // console.log('Creating redesigned avg-check-chart');
+                
                 // Generate sample average check trend data
                 var avgCheckData = [12500, 13200, 12800, 13600, 14100, 13900, 14300];
                 var labels = ['Мая', 'Июня', 'Июля', 'Авг', 'Сен', 'Окт', 'Ноя'];
                 
-                return window.ChartFactory.createSparkline('avg-check-chart', {
-                    dates: labels,
+                return PageRenderers.safeCreateChart('line', 'avg-check-chart', {
+                    labels: labels,
                     fact: avgCheckData
+                }, {
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Средний чек: ' + 
+                                           (window.formatMoney ? window.formatMoney(context.parsed.y, 'RUB', 0) : 
+                                            window.ChartsRedesigned.formatNumber(context.parsed.y));
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return window.formatMoney ? 
+                                        window.formatMoney(value, 'RUB', 0) : 
+                                        (window.ChartsRedesigned ? window.ChartsRedesigned.formatNumber(value) : value);
+                                }
+                            }
+                        }
+                    }
                 });
             });
         },
         
         // Profitability page charts
         renderProfitability: function(data) {
-            // EBITDA Bridge chart using planFactDrivers for waterfall
+            // EBITDA Bridge chart using planFactDrivers - REDESIGNED
             this.ensureChart('ebitda-bridge-chart', 'bar', function() {
-                console.log('ebitda-bridge-chart factory: planFactDrivers =', data.planFactDrivers);
-                
-                var canvas = document.getElementById('ebitda-bridge-chart');
-                if (!canvas) {
-                    console.warn('ebitda-bridge-chart: Canvas not found');
-                    return null;
-                }
-                
-                window.ChartFactory.ensureCanvasSize(canvas);
+                // console.log('Creating redesigned ebitda-bridge-chart');
                 
                 // Provide fallback data if planFactDrivers is missing
                 var drivers = data.planFactDrivers || [
@@ -490,82 +661,71 @@
                     { driver: 'Операционные расходы', plan: 7000000, fact: 6800000, variance: -200000 }
                 ];
                 
-                console.log('ebitda-bridge-chart: Using drivers =', drivers);
+                // console.log('ebitda-bridge-chart: Using drivers =', drivers);
                 var labels = drivers.map(function(d) { return d.driver; });
                 var plannedValues = drivers.map(function(d) { return d.plan || 0; });
                 var actualValues = drivers.map(function(d) { return d.fact || 0; });
                 
-                var config = {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'План',
-                                data: plannedValues,
-                                backgroundColor: 'rgba(23, 162, 184, 0.7)',
-                                borderColor: '#17a2b8',
-                                borderWidth: 1,
-                                },
-                            {
-                                label: 'Факт',
-                                data: actualValues,
-                                backgroundColor: 'rgba(40, 167, 69, 0.7)',
-                                borderColor: '#28a745',
-                                borderWidth: 1,
-                                }
-                        ]
-                    },
-                    options: Object.assign({}, window.ChartFactory.defaultOptions, {
-                        scales: {
-                            xAxes: [{
-                                gridLines: { display: false },
-                                ticks: { 
-                                    fontSize: 10,
-                                    maxRotation: 45
-                                }
-                            }],
-                            yAxes: [{
-                                gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
-                                ticks: {
-                                    fontSize: 11,
-                                    callback: function(value) {
-                                        return window.formatMoney(value, 'RUB', 0);
-                                    }
-                                }
-                            }]
+                return PageRenderers.safeCreateChart('bar', 'ebitda-bridge-chart', {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'План',
+                            data: plannedValues
                         },
-                        tooltips: {
+                        {
+                            label: 'Факт',
+                            data: actualValues
+                        }
+                    ]
+                }, {
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
                             callbacks: {
-                                label: function(tooltipItem, data) {
-                                    var driver = drivers[tooltipItem.index];
-                                    var label = data.datasets[tooltipItem.datasetIndex].label + ': ' + window.formatMoney(tooltipItem.yLabel, 'RUB', 0);
-                                    if (data.datasets[tooltipItem.datasetIndex].label === 'Факт') {
+                                label: function(context) {
+                                    var driver = drivers[context.dataIndex];
+                                    var label = context.dataset.label + ': ' + 
+                                               (window.formatMoney ? window.formatMoney(context.parsed.y, 'RUB', 0) : 
+                                                (window.ChartsRedesigned ? window.ChartsRedesigned.formatNumber(context.parsed.y) : context.parsed.y));
+                                    
+                                    if (context.dataset.label === 'Факт') {
                                         var variance = driver.variance || 0;
                                         var prefix = variance >= 0 ? '+' : '';
-                                        label += ' (откл: ' + prefix + window.formatMoney(variance, 'RUB', 0) + ')';
+                                        label += ' (откл: ' + prefix + 
+                                                (window.formatMoney ? window.formatMoney(variance, 'RUB', 0) : 
+                                                 window.ChartsRedesigned.formatNumber(variance)) + ')';
                                     }
                                     return label;
                                 }
                             }
                         }
-                    })
-                };
-                
-                return new Chart(canvas, config);
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxRotation: 45
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return window.formatMoney ? 
+                                        window.formatMoney(value, 'RUB', 0) : 
+                                        (window.ChartsRedesigned ? window.ChartsRedesigned.formatNumber(value) : value);
+                                }
+                            }
+                        }
+                    }
+                });
             });
             
-            // Margin by branches chart
+            // Margin by branches chart - REDESIGNED
             this.ensureChart('margin-branches-chart', 'bar', function() {
-                console.log('margin-branches-chart factory: structures =', data.structures);
-                
-                var canvas = document.getElementById('margin-branches-chart');
-                if (!canvas) {
-                    console.warn('margin-branches-chart: Canvas not found');
-                    return null;
-                }
-                
-                window.ChartFactory.ensureCanvasSize(canvas);
+                // console.log('Creating redesigned margin-branches-chart');
                 
                 // Provide fallback data if structures.byBranch is missing
                 var branches = (data.structures && data.structures.byBranch) || [
@@ -575,49 +735,38 @@
                     { name: 'Новосибирск', revenue: 21700000, share: 18.3, margin: 21.1 }
                 ];
                 
-                console.log('margin-branches-chart: Using branches =', branches);
+                // console.log('margin-branches-chart: Using branches =', branches);
                 
-                var config = {
-                    type: 'horizontalBar',
-                    data: {
-                        labels: branches.map(function(b) { return b.name || ''; }),
-                        datasets: [{
-                            label: 'Маржа по филиалам %',
-                            data: branches.map(function(b) { return b.margin || 0; }),
-                            backgroundColor: ['#34C759', '#007AFF', '#FF9500', '#FF6B6B'],
-                            borderColor: ['#34C759', '#007AFF', '#FF9500', '#FF6B6B'],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: Object.assign({}, window.ChartFactory.defaultOptions, {
-                        scales: {
-                            xAxes: [{
-                                gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
-                                ticks: {
-                                    fontSize: 11,
-                                    callback: function(value) {
-                                        return value + '%';
-                                    }
-                                },
-                                max: Math.max.apply(Math, branches.map(function(b) { return b.margin || 0; })) + 5
-                            }],
-                            yAxes: [{
-                                gridLines: { display: false },
-                                ticks: { fontSize: 11 }
-                            }]
+                return PageRenderers.safeCreateChart('bar', 'margin-branches-chart', {
+                    labels: branches.map(function(b) { return b.name || ''; }),
+                    values: branches.map(function(b) { return b.margin || 0; }),
+                    label: 'Маржа по филиалам %',
+                    horizontal: true,
+                    colorScheme: 'gradient'
+                }, {
+                    plugins: {
+                        legend: {
+                            display: false
                         },
-                        tooltips: {
+                        tooltip: {
                             callbacks: {
-                                label: function(tooltipItem, data) {
-                                    var branch = branches[tooltipItem.index];
-                                    return branch.name + ': ' + branch.margin + '%';
+                                label: function(context) {
+                                    var branch = branches[context.dataIndex];
+                                    return branch.name + ': ' + branch.margin.toFixed(1) + '%';
                                 }
                             }
                         }
-                    })
-                };
-                
-                return new Chart(canvas, config);
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    }
+                });
             });
         },
         
@@ -775,7 +924,7 @@
         renderAccReceivable: function(data) {
             // Aging analysis chart using arAging buckets
             this.ensureChart('aging-analysis-chart', 'bar', function() {
-                console.log('aging-analysis-chart factory: arAging =', data.arAging);
+                // console.log('aging-analysis-chart factory: arAging =', data.arAging);
                 
                 var canvas = document.getElementById('aging-analysis-chart');
                 if (!canvas) {
@@ -793,7 +942,7 @@
                     '90+': 1900000
                 };
                 
-                console.log('aging-analysis-chart: Using buckets =', buckets);
+                // console.log('aging-analysis-chart: Using buckets =', buckets);
                 
                 var labels = ['0-30 дней', '31-60 дней', '61-90 дней', '90+ дней'];
                 var values = [
@@ -921,7 +1070,7 @@
         
         // Ensure chart exists, create if needed
         ensureChart: function(canvasId, type, createFunction) {
-            console.log('ensureChart called for:', canvasId);
+            // console.log('ensureChart called for:', canvasId);
             
             // Add debug info to DOM if ChartFactory debug element exists
             var debugElement = document.getElementById('debug-info');
@@ -936,7 +1085,7 @@
                 return null;
             }
             
-            console.log('Canvas found:', canvasId, 'dimensions:', canvas.clientWidth + 'x' + canvas.clientHeight);
+            // console.log('Canvas found:', canvasId, 'dimensions:', canvas.clientWidth + 'x' + canvas.clientHeight);
             
             // Ensure canvas context is available
             var ctx = canvas.getContext('2d');
@@ -947,7 +1096,7 @@
             
             // Ensure canvas has dimensions
             if (canvas.clientWidth === 0 || canvas.clientHeight === 0) {
-                console.log('Canvas has zero dimensions, setting defaults');
+                // console.log('Canvas has zero dimensions, setting defaults');
                 // Set default dimensions if not set
                 canvas.style.width = '400px';
                 canvas.style.height = '300px';
@@ -956,7 +1105,7 @@
             // Check if there's already a Chart.js instance on this canvas
             var existingChart = canvas.chart;
             if (existingChart && existingChart.destroy) {
-                console.log('Destroying existing chart on:', canvasId);
+                // console.log('Destroying existing chart on:', canvasId);
                 existingChart.destroy();
             }
             
@@ -973,14 +1122,14 @@
                     Chart.defaults.global.defaultFontColor = '#374151';
                 }
                 
-                console.log('Calling createFunction for:', canvasId);
+                // console.log('Calling createFunction for:', canvasId);
                 if (debugElement) debugElement.innerHTML += '<div>Calling createFunction for: ' + canvasId + '</div>';
                 var chart = createFunction();
-                console.log('CreateFunction returned:', !!chart, 'for', canvasId);
+                // console.log('CreateFunction returned:', !!chart, 'for', canvasId);
                 
                 if (chart) {
                     this.createdCharts[canvasId] = chart;
-                    console.log('Chart successfully created and tracked:', canvasId);
+                    // console.log('Chart successfully created and tracked:', canvasId);
                     if (debugElement) debugElement.innerHTML += '<div>SUCCESS: Chart created for: ' + canvasId + '</div>';
                 } else {
                     console.warn('CreateFunction returned null/undefined for:', canvasId);

@@ -110,7 +110,7 @@
                 this.initialized = true;
                 
                 var duration = Date.now() - startTime;
-                console.log('CFO Dashboard initialized in', duration, 'ms');
+                // Dashboard initialized successfully
                 
                 // Add debug test for Chart.js and chart creation
                 var debugElement = document.getElementById('debug-info');
@@ -668,6 +668,16 @@
     function initializeDashboard() {
         // Small delay to ensure all modules are loaded
         setTimeout(function() {
+            // Initialize redesigned charts module first
+            if (window.ChartsRedesigned) {
+                // ChartsRedesigned module loaded successfully
+                // Apply global Chart.js defaults from redesigned module
+                if (window.Chart) {
+                    Object.assign(Chart.defaults, window.ChartsRedesigned.getGlobalDefaults());
+                }
+            }
+            
+            // Initialize main dashboard
             CFODashboard.initialize();
         }, 100);
     }

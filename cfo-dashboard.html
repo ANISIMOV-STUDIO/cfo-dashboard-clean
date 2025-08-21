@@ -47,6 +47,34 @@
         <button class="preset-btn" data-preset="year">Год</button>
       </div>
       
+      <!-- Кастомный выбор дат -->
+      <div class="date-picker-group">
+        <div class="date-input-container">
+          <label for="date-from" class="date-label">От:</label>
+          <input type="text" id="date-from" class="date-input" placeholder="ДД.ММ.ГГГГ" maxlength="10" aria-label="Дата начала периода">
+          <button type="button" class="date-calendar-btn" aria-label="Открыть календарь" data-target="date-from">📅</button>
+        </div>
+        
+        <div class="date-input-container">
+          <label for="date-to" class="date-label">До:</label>
+          <input type="text" id="date-to" class="date-input" placeholder="ДД.ММ.ГГГГ" maxlength="10" aria-label="Дата окончания периода">
+          <button type="button" class="date-calendar-btn" aria-label="Открыть календарь" data-target="date-to">📅</button>
+        </div>
+        
+        <!-- Выпадающий календарь -->
+        <div id="custom-calendar" class="custom-calendar" style="display: none;">
+          <div class="calendar-header">
+            <button type="button" class="calendar-nav prev" aria-label="Предыдущий месяц">‹</button>
+            <span class="calendar-month-year"></span>
+            <button type="button" class="calendar-nav next" aria-label="Следующий месяц">›</button>
+          </div>
+          <div class="calendar-weekdays">
+            <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+          </div>
+          <div class="calendar-days"></div>
+        </div>
+      </div>
+      
       <!-- Каскадные фильтры -->
       <div class="select" data-select-id="companyId">
         <button class="sel-btn">ООО Прогресс<span class="sel-arrow">▾</span></button>
@@ -107,9 +135,9 @@
       
       <div class="interaction-status">
         <span id="filter-indicator" class="filter-status"></span>
-        <button id="toggle-realtime-btn" class="realtime-btn active" title="Переключить авто-обновление">📡</button>
-        <button id="manual-refresh-btn" class="refresh-btn" title="Обновить данные вручную">⟳</button>
-        <button id="reset-all-btn" class="reset-btn" title="Сбросить все фильтры и масштабирование (ESC)">🔄</button>
+        <button id="toggle-realtime-btn" class="realtime-btn active" title="Переключить авто-обновление" aria-label="Переключить авто-обновление данных" aria-pressed="true">📡</button>
+        <button id="manual-refresh-btn" class="refresh-btn" title="Обновить данные вручную" aria-label="Обновить данные вручную">⟳</button>
+        <button id="reset-all-btn" class="reset-btn" title="Сбросить все фильтры и масштабирование (ESC)" aria-label="Сбросить все фильтры и масштабирование">🔄</button>
       </div>
     </div>
     <main id="pages" class="content">
@@ -121,15 +149,11 @@
               <div class="card-title">Динамика выручки, млн ₽</div>
               <div class="card-subtle">Факт · План · ПГ · Прогноз</div>
               <div class="chart-controls">
-                <div class="comparison-controls" data-chart-id="revenue-trend-chart">
-                  <button class="comp-btn comp-none active" data-mode="none" title="Только факт">Факт</button>
-                  <button class="comp-btn comp-prev" data-mode="prevYear" title="Сравнение с прошлым годом">vs ПГ</button>
-                  <button class="comp-btn comp-plan" data-mode="plan" title="Сравнение с планом">vs План</button>
-                </div>
-                <div class="zoom-controls" data-chart-id="revenue-trend-chart">
-                  <button class="zoom-btn zoom-out" title="Уменьшить масштаб">−</button>
-                  <button class="zoom-btn zoom-in" title="Увеличить масштаб">+</button>
-                  <button class="zoom-btn zoom-reset" title="Сбросить масштаб">⟲</button>
+                <div class="scenario-controls" data-chart-id="revenue-trend-chart">
+                  <button class="scenario-btn active" data-scenario="fact" title="Показать только факт" aria-pressed="true">Факт</button>
+                  <button class="scenario-btn" data-scenario="vs-pg" title="Сравнение с прошлым годом" aria-pressed="false">vs ПГ</button>
+                  <button class="scenario-btn" data-scenario="vs-plan" title="Сравнение с планом" aria-pressed="false">vs План</button>
+                  <button class="scenario-btn" data-scenario="forecast" title="Показать прогноз" aria-pressed="false">Прогноз</button>
                 </div>
               </div>
             </div>
@@ -142,15 +166,11 @@
               <div class="card-title">Маржинальность, %</div>
               <div class="card-subtle">Валовая · EBITDA · Чистая</div>
               <div class="chart-controls">
-                <div class="comparison-controls" data-chart-id="margins-trend-chart">
-                  <button class="comp-btn comp-none active" data-mode="none" title="Только факт">Факт</button>
-                  <button class="comp-btn comp-prev" data-mode="prevYear" title="Сравнение с прошлым годом">vs ПГ</button>
-                  <button class="comp-btn comp-plan" data-mode="plan" title="Сравнение с планом">vs План</button>
-                </div>
-                <div class="zoom-controls" data-chart-id="margins-trend-chart">
-                  <button class="zoom-btn zoom-out" title="Уменьшить масштаб">−</button>
-                  <button class="zoom-btn zoom-in" title="Увеличить масштаб">+</button>
-                  <button class="zoom-btn zoom-reset" title="Сбросить масштаб">⟲</button>
+                <div class="scenario-controls" data-chart-id="margins-trend-chart">
+                  <button class="scenario-btn active" data-scenario="fact" title="Показать только факт" aria-pressed="true">Факт</button>
+                  <button class="scenario-btn" data-scenario="vs-pg" title="Сравнение с прошлым годом" aria-pressed="false">vs ПГ</button>
+                  <button class="scenario-btn" data-scenario="vs-plan" title="Сравнение с планом" aria-pressed="false">vs План</button>
+                  <button class="scenario-btn" data-scenario="forecast" title="Показать прогноз" aria-pressed="false">Прогноз</button>
                 </div>
               </div>
             </div>
@@ -364,10 +384,15 @@
     
     window.EMBEDDED_ALERTS_CONFIG = {"alertRules":{"cash_shortage":{"name":"Нехватка денежных средств","description":"Cash Runway менее установленного порога","metric":"cashRunwayMonths","thresholds":{"critical":1,"high":3,"medium":6,"low":12},"operator":"less_than","message":"Cash Runway составляет {value} мес. Требуется пополнение оборотных средств","recommendations":["Ускорить взыскание дебиторской задолженности","Пересмотреть условия оплаты с поставщиками","Рассмотреть кредитные линии"]},"overdue_ar":{"name":"Критическая просрочка","description":"Дебиторская задолженность с просрочкой более 90 дней","metric":"arAging.buckets.90+","thresholds":{"critical":10000000,"high":5000000,"medium":2000000,"low":1000000},"operator":"greater_than","message":"Просрочка 90+ дней: {value} млн ₽. Риск списания безнадежных долгов","recommendations":["Принудительное взыскание через суд","Работа с коллекторскими агентствами","Создание резерва по сомнительным долгам"]}},"alertSettings":{"enabledAlerts":["cash_shortage","overdue_ar"],"notificationChannels":{"dashboard":true,"email":false,"sms":false,"telegram":false},"updateFrequency":"realtime","maxAlertsDisplayed":5,"autoHideAfterMinutes":0,"priorityOrder":["critical","high","medium","low"]},"severityColors":{"critical":"#ff3b30","high":"#ff6347","medium":"#ff9500","low":"#34c759"}};
   </script>
+  <script src="src/core/disable-logs.js"></script>
   <script src="src/core/utils.js"></script>
   <script src="src/core/data.js"></script>
   <script src="src/core/state.js"></script>
+  <script src="src/core/charts-redesigned.js"></script>
   <script src="src/core/charts.js"></script>
+  <script src="src/core/date-picker.js"></script>
+  <script src="src/core/scenario-switcher.js"></script>
+  <script src="src/core/accessibility.js"></script>
   <script src="src/core/alerts.js"></script>
   <script src="src/core/kpi-cards.js"></script>
   <script src="src/core/renderers.js"></script>

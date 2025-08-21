@@ -436,8 +436,7 @@
         // Create line chart for time series
         createLineChart: function(canvasId, data) {
             
-            console.log('ChartFactory.createLineChart called:', canvasId, data);
-            console.log('Chart.js available:', typeof Chart, Chart);
+            // Creating line chart
             
             // Add debug info to DOM
             var debugElement = document.getElementById('debug-info') || this.createDebugElement();
@@ -446,11 +445,11 @@
             
             var canvas = document.getElementById(canvasId);
             if (!canvas) {
-                console.log('Canvas not found for:', canvasId);
+                // Canvas not found
                 debugElement.innerHTML += '<div>ERROR: Canvas not found: ' + canvasId + '</div>';
                 return null;
             }
-            console.log('Canvas found:', canvas);
+            // Canvas found
             debugElement.innerHTML += '<div>Canvas found: ' + canvasId + '</div>';
             
             // Validate input data
@@ -505,11 +504,11 @@
                 this.enableLegend(config, 'bottom');
             }
             
-            console.log('Creating Chart.js instance with config:', config);
+            // Creating Chart.js instance
             var debugElement = document.getElementById('debug-info');
             try {
                 var chart = new Chart(canvas, config);
-                console.log('Chart created successfully:', chart);
+                // Chart created successfully
                 if (debugElement) debugElement.innerHTML += '<div>Chart created successfully for: ' + canvasId + '</div>';
                 return chart;
             } catch (error) {
@@ -761,123 +760,11 @@
             }
         },
         
-        // Manual zoom functionality without plugins
-        zoomChart: function(chartInstance, chartId, direction) {
-            if (!chartInstance || !chartInstance.data) return;
-            
-            var zoom = window.DashboardState ? window.DashboardState.getZoom(chartId) : null;
-            var dataLength = chartInstance.data.labels.length;
-            
-            if (!zoom) {
-                // Initialize zoom window
-                zoom = { start: 0, end: dataLength - 1 };
-            }
-            
-            var windowSize = zoom.end - zoom.start + 1;
-            var step = Math.max(1, Math.floor(windowSize * 0.2)); // 20% step
-            
-            if (direction === 'in') {
-                // Zoom in - reduce window size
-                if (windowSize > 3) {
-                    zoom.start = Math.min(zoom.start + step, zoom.end - 2);
-                    zoom.end = Math.max(zoom.end - step, zoom.start + 2);
-                }
-            } else if (direction === 'out') {
-                // Zoom out - increase window size
-                zoom.start = Math.max(0, zoom.start - step);
-                zoom.end = Math.min(dataLength - 1, zoom.end + step);
-            } else if (direction === 'reset') {
-                // Reset zoom
-                zoom = { start: 0, end: dataLength - 1 };
-            }
-            
-            // Apply zoom to chart
-            this.applyZoomToChart(chartInstance, zoom);
-            
-            // Save zoom state
-            if (window.DashboardState) {
-                window.DashboardState.setZoom(chartId, zoom.start, zoom.end);
-            }
-        },
+        // DEPRECATED: Manual zoom functionality - REMOVED
+        // Zoom functionality has been completely removed to improve readability
         
-        // Apply zoom window to chart data
-        applyZoomToChart: function(chartInstance, zoom) {
-            if (!chartInstance || !chartInstance.data) return;
-            
-            var originalData = chartInstance.originalData || {
-                labels: chartInstance.data.labels.slice(),
-                datasets: chartInstance.data.datasets.map(function(dataset) {
-                    return { data: dataset.data.slice(), label: dataset.label };
-                })
-            };
-            
-            // Store original data if not already stored
-            if (!chartInstance.originalData) {
-                chartInstance.originalData = originalData;
-            }
-            
-            // Apply zoom window
-            var start = Math.max(0, zoom.start);
-            var end = Math.min(originalData.labels.length - 1, zoom.end);
-            
-            chartInstance.data.labels = originalData.labels.slice(start, end + 1);
-            chartInstance.data.datasets.forEach(function(dataset, i) {
-                if (originalData.datasets[i]) {
-                    dataset.data = originalData.datasets[i].data.slice(start, end + 1);
-                }
-            });
-            
-            chartInstance.update('none'); // No animation for performance
-        },
-        
-        // Reset chart zoom to original data
-        resetChartZoom: function(chartInstance, chartId) {
-            if (!chartInstance || !chartInstance.originalData) return;
-            
-            chartInstance.data.labels = chartInstance.originalData.labels.slice();
-            chartInstance.data.datasets.forEach(function(dataset, i) {
-                if (chartInstance.originalData.datasets[i]) {
-                    dataset.data = chartInstance.originalData.datasets[i].data.slice();
-                }
-            });
-            
-            chartInstance.update('none');
-            
-            // Clear zoom state
-            if (window.DashboardState) {
-                window.DashboardState.clearZoom(chartId);
-            }
-        },
-        
-        // Get zoom controls HTML
-        getZoomControlsHTML: function(chartId) {
-            return '<div class="zoom-controls" data-chart-id="' + chartId + '">' +
-                   '<button class="zoom-btn zoom-out" title="Уменьшить масштаб">−</button>' +
-                   '<button class="zoom-btn zoom-in" title="Увеличить масштаб">+</button>' +
-                   '<button class="zoom-btn zoom-reset" title="Сбросить масштаб">⟲</button>' +
-                   '</div>';
-        },
-        
-        // Bind zoom controls to chart
-        bindZoomControls: function(chartInstance, chartId) {
-            var self = this;
-            var container = document.querySelector('[data-chart-id="' + chartId + '"]');
-            
-            if (container) {
-                container.addEventListener('click', function(event) {
-                    if (event.target.classList.contains('zoom-btn')) {
-                        var action = '';
-                        if (event.target.classList.contains('zoom-in')) action = 'in';
-                        else if (event.target.classList.contains('zoom-out')) action = 'out';
-                        else if (event.target.classList.contains('zoom-reset')) action = 'reset';
-                        
-                        if (action) {
-                            self.zoomChart(chartInstance, chartId, action);
-                        }
-                    }
-                });
-            }
-        },
+        // DEPRECATED: All zoom functionality has been completely removed for better readability
+        // No zoom controls, no zoom manipulation, no zoom buttons
         
         // Apply comparison mode to chart
         applyComparisonMode: function(chartInstance, mode, originalData) {
@@ -992,43 +879,8 @@
             }
         },
         
-        // Get comparison controls HTML
-        getComparisonControlsHTML: function(chartId) {
-            return '<div class="comparison-controls" data-chart-id="' + chartId + '">' +
-                   '<button class="comp-btn comp-none active" data-mode="none" title="Только факт">Факт</button>' +
-                   '<button class="comp-btn comp-prev" data-mode="prevYear" title="Сравнение с прошлым годом">vs Прошлый год</button>' +
-                   '<button class="comp-btn comp-plan" data-mode="plan" title="Сравнение с планом">vs План</button>' +
-                   '</div>';
-        },
-        
-        // Bind comparison controls
-        bindComparisonControls: function(chartInstance, chartId) {
-            var self = this;
-            var container = document.querySelector('[data-chart-id="' + chartId + '"] .comparison-controls');
-            
-            if (container) {
-                container.addEventListener('click', function(event) {
-                    if (event.target.classList.contains('comp-btn')) {
-                        var mode = event.target.getAttribute('data-mode');
-                        
-                        // Update active state
-                        var buttons = container.querySelectorAll('.comp-btn');
-                        buttons.forEach(function(btn) {
-                            btn.classList.remove('active');
-                        });
-                        event.target.classList.add('active');
-                        
-                        // Apply comparison mode
-                        self.applyComparisonMode(chartInstance, mode);
-                        
-                        // Update state
-                        if (window.DashboardState) {
-                            window.DashboardState.setFilter('compare', mode);
-                        }
-                    }
-                });
-            }
-        },
+        // DEPRECATED: All comparison control buttons removed for cleaner interface
+        // Comparisons are now built into the chart data automatically
         
         // Initialize comparison mode event listeners
         initializeComparisonListeners: function() {
@@ -1042,65 +894,8 @@
             });
         },
         
-        // Zoom functionality implementation
-        zoomStep: 0.2,
-        
-        zoomIn: function(chartId, series) {
-            console.log('ChartFactory.zoomIn called for:', chartId);
-            
-            if (!window.DashboardState) {
-                console.warn('DashboardState not available for zoom');
-                return;
-            }
-            
-            var len = (series.dates || []).length;
-            console.log('Series length:', len);
-            
-            var z = window.DashboardState.getZoom(chartId) || { start: 0, end: len - 1 };
-            console.log('Current zoom:', z);
-            
-            var span = Math.max(3, Math.floor((z.end - z.start + 1) * (1 - this.zoomStep)));
-            var center = Math.floor((z.start + z.end) / 2);
-            var half = Math.floor(span / 2);
-            var ns = Math.max(0, center - half);
-            var ne = Math.min(len - 1, ns + span - 1);
-            
-            console.log('New zoom window:', ns, '->', ne);
-            window.DashboardState.setZoom(chartId, ns, ne);
-        },
-        
-        zoomOut: function(chartId, series) {
-            console.log('ChartFactory.zoomOut called for:', chartId);
-            
-            if (!window.DashboardState) {
-                console.warn('DashboardState not available for zoom');
-                return;
-            }
-            
-            var len = (series.dates || []).length;
-            var z = window.DashboardState.getZoom(chartId) || { start: 0, end: len - 1 };
-            console.log('Current zoom:', z, 'Series length:', len);
-            
-            var span = Math.min(len, Math.floor((z.end - z.start + 1) * (1 + this.zoomStep)));
-            var center = Math.floor((z.start + z.end) / 2);
-            var half = Math.floor(span / 2);
-            var ns = Math.max(0, center - half);
-            var ne = Math.min(len - 1, ns + span - 1);
-            
-            console.log('New zoom window:', ns, '->', ne);
-            window.DashboardState.setZoom(chartId, ns, ne);
-        },
-        
-        zoomReset: function(chartId) {
-            console.log('ChartFactory.zoomReset called for:', chartId);
-            
-            if (window.DashboardState) {
-                window.DashboardState.clearZoom(chartId);
-                console.log('Zoom cleared for chart:', chartId);
-            } else {
-                console.warn('DashboardState not available for zoom reset');
-            }
-        }
+        // DEPRECATED: All zoom functionality completely removed
+        // Charts now show all data without zoom controls for better readability
     };
     
     // Listen for filter changes to reset zoom
