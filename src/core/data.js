@@ -95,8 +95,11 @@
             try {
                 var data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
                 
+                console.log('DataManager.loadData called with:', data);
+                
                 // Validate data structure
                 var validation = DataValidator.validateSchema(data);
+                console.log('Data validation result:', validation);
                 
                 // Сохраняем исходные данные для фильтрации
                 this._rawData = data;
@@ -104,6 +107,13 @@
                 // Transform data
                 this.currentData = DataValidator.transformData(data);
                 this.lastUpdateTime = new Date();
+                
+                console.log('Data loaded successfully. CurrentData keys:', Object.keys(this.currentData));
+                console.log('CurrentData structure check:', {
+                    hasTimeSeries: !!this.currentData.timeSeries,
+                    hasRevenue: !!(this.currentData.timeSeries && this.currentData.timeSeries.revenue),
+                    hasKPI: !!this.currentData.kpi
+                });
                 
                 // Trigger data update event
                 this.triggerDataUpdate();
@@ -169,12 +179,20 @@
         
         // Новый метод фильтрации данных
         getFiltered: function() {
+            console.log('DataManager.getFiltered called');
+            
             if (!this._rawData) {
+                console.log('No raw data, using current data');
                 return this.currentData;
             }
             
             var filters = window.DashboardState ? window.DashboardState.getState().filters : {};
-            return this._applyFilters(this._rawData, filters);
+            console.log('Current filters:', filters);
+            
+            var filtered = this._applyFilters(this._rawData, filters);
+            console.log('Filtered data:', filtered);
+            
+            return filtered;
         },
         
         // Применение фильтров к исходным данным
@@ -290,10 +308,29 @@
         
         // Получить данные для конкретного графика с учётом зума
         getFilteredForChart: function(chartId) {
-            var baseData = this.getFiltered();
-            var zoom = window.DashboardState ? window.DashboardState.getZoom(chartId) : null;
+            console.log('Getting filtered data for chart:', chartId);
             
-            if (!zoom || !baseData.revenue) return baseData.revenue;
+            var baseData = this.getFiltered();
+            console.log('Base data:', baseData);
+            
+            if (!baseData || !baseData.revenue) {
+                console.warn('No base data or revenue data available');
+                // Return dummy data for testing
+                return {
+                    dates: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    fact: [100, 120, 150, 140, 160, 180],
+                    plan: [110, 130, 140, 150, 170, 190],
+                    prevYear: [90, 100, 120, 110, 130, 140],
+                    forecast: [160, 170, 180, 190, 200, 210]
+                };
+            }
+            
+            var zoom = window.DashboardState ? window.DashboardState.getZoom(chartId) : null;
+            console.log('Zoom for chart:', chartId, zoom);
+            
+            if (!zoom) {
+                return baseData.revenue;
+            }
             
             return this._applyZoomWindow(baseData.revenue, zoom);
         },
@@ -349,11 +386,133 @@
             }
             
             return allDimensions;
+        },
+        
+        // Initialize with demo data if no data is loaded
+        initializeDemoData: function() {
+            if (!this.currentData && !this._rawData) {
+                console.log('Loading demo data...');
+                var demoData = this.generateDemoData();
+                this.loadData(demoData);
+            }
+        },
+        
+        // Generate comprehensive demo data
+        generateDemoData: function() {
+            var dates = [];
+            var fact = [];
+            var plan = [];
+            var prevYear = [];
+            var forecast = [];
+            
+            // Generate 12 months of data
+            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            for (var i = 0; i < 12; i++) {
+                dates.push(months[i]);
+                
+                // Generate realistic revenue data
+                var baseFact = 10000000 + Math.sin(i * Math.PI / 6) * 2000000 + Math.random() * 1000000;
+                var basePlan = baseFact * (1.1 + Math.random() * 0.1);
+                var basePrevYear = baseFact * (0.85 + Math.random() * 0.2);
+                
+                fact.push(Math.round(baseFact));
+                plan.push(Math.round(basePlan));
+                prevYear.push(Math.round(basePrevYear));
+                forecast.push(Math.round(baseFact * (1.05 + Math.random() * 0.1)));
+            }
+            
+            return {
+                meta: {
+                    company: 'ООО Прогресс',
+                    period: 'Декабрь 2024',
+                    currency: 'RUB',
+                    lastUpdate: new Date().toISOString()
+                },
+                kpi: {
+                    revenue: {
+                        current: fact[fact.length - 1],
+                        momChange: ((fact[fact.length - 1] - fact[fact.length - 2]) / fact[fact.length - 2] * 100),
+                        yoyChange: ((fact[fact.length - 1] - prevYear[prevYear.length - 1]) / prevYear[prevYear.length - 1] * 100)
+                    },
+                    ebitda: fact[fact.length - 1] * 0.15,
+                    ebitdaMargin: 15,
+                    cashEnd: 25000000,
+                    cashRunwayMonths: 8.5,
+                    margins: {
+                        gross: 35,
+                        ebitda: 15,
+                        net: 8
+                    }
+                },
+                timeSeries: {
+                    revenue: {
+                        dates: dates,
+                        fact: fact,
+                        plan: plan,
+                        prevYear: prevYear,
+                        forecast: forecast
+                    },
+                    margins: {
+                        dates: dates,
+                        gross: dates.map(function() { return 30 + Math.random() * 10; }),
+                        ebitda: dates.map(function() { return 12 + Math.random() * 6; }),
+                        net: dates.map(function() { return 5 + Math.random() * 6; })
+                    },
+                    cashFlow: {
+                        monthly: {
+                            dates: dates,
+                            ocf: dates.map(function() { return 1000000 + Math.random() * 2000000; }),
+                            icf: dates.map(function() { return -500000 + Math.random() * 1000000; }),
+                            fcf: dates.map(function() { return 500000 + Math.random() * 1500000; })
+                        }
+                    }
+                },
+                structures: {
+                    byOrganization: [
+                        { name: 'Центр', revenue: 15000000, percentage: 45, sparkline: [14000000, 14500000, 15000000] },
+                        { name: 'Юг', revenue: 8000000, percentage: 25, sparkline: [7500000, 7800000, 8000000] },
+                        { name: 'Север', revenue: 6000000, percentage: 18, sparkline: [6200000, 5900000, 6000000] },
+                        { name: 'Восток', revenue: 4000000, percentage: 12, sparkline: [3800000, 3900000, 4000000] }
+                    ],
+                    byProduct: [
+                        { name: 'Продукт А', revenue: 12000000, percentage: 36 },
+                        { name: 'Продукт Б', revenue: 10000000, percentage: 30 },
+                        { name: 'Продукт В', revenue: 7000000, percentage: 21 },
+                        { name: 'Прочие', revenue: 4000000, percentage: 13 }
+                    ]
+                },
+                alerts: [
+                    {
+                        type: 'warning',
+                        title: 'Снижение маржи',
+                        description: 'EBITDA маржа снизилась на 2 п.п. по сравнению с планом',
+                        severity: 'medium',
+                        timestamp: new Date().toISOString()
+                    },
+                    {
+                        type: 'info',
+                        title: 'Превышение плана',
+                        description: 'Выручка превысила план на 5%',
+                        severity: 'low',
+                        timestamp: new Date().toISOString()
+                    }
+                ]
+            };
         }
     };
     
     // Export to window for global access
     window.DataManager = DataManager;
     window.DataValidator = DataValidator;
+    
+    // Auto-initialize demo data when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            DataManager.initializeDemoData();
+        });
+    } else {
+        DataManager.initializeDemoData();
+    }
     
 })();

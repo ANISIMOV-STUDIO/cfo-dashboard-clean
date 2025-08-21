@@ -660,6 +660,7 @@ select:focus-visible {
 .zoom-controls {
   display: flex !important;
   gap: 4px !important;
+  pointer-events: auto !important;
 }
 
 /* Comparison Buttons */

@@ -112,6 +112,42 @@
                 var duration = Date.now() - startTime;
                 console.log('CFO Dashboard initialized in', duration, 'ms');
                 
+                // Add debug test for Chart.js and chart creation
+                var debugElement = document.getElementById('debug-info');
+                if (debugElement) {
+                    debugElement.innerHTML += '<div><strong>Dashboard initialized</strong></div>';
+                    debugElement.innerHTML += '<div>Chart.js available: ' + (typeof Chart) + '</div>';
+                    debugElement.innerHTML += '<div>ChartFactory available: ' + (typeof window.ChartFactory) + '</div>';
+                    debugElement.innerHTML += '<div>PageRenderers available: ' + (typeof window.PageRenderers) + '</div>';
+                    
+                    // Test chart creation immediately
+                    setTimeout(function() {
+                        debugElement.innerHTML += '<div>Testing chart creation...</div>';
+                        var testCanvas = document.createElement('canvas');
+                        testCanvas.id = 'debug-test-canvas';
+                        testCanvas.width = 200;
+                        testCanvas.height = 100;
+                        testCanvas.style.display = 'none';
+                        document.body.appendChild(testCanvas);
+                        
+                        try {
+                            var testChart = new Chart(testCanvas, {
+                                type: 'line',
+                                data: {
+                                    labels: ['A', 'B', 'C'],
+                                    datasets: [{
+                                        data: [1, 2, 3],
+                                        borderColor: 'red'
+                                    }]
+                                }
+                            });
+                            debugElement.innerHTML += '<div>SUCCESS: Direct Chart.js test passed</div>';
+                        } catch (error) {
+                            debugElement.innerHTML += '<div>ERROR: Direct Chart.js test failed: ' + error.message + '</div>';
+                        }
+                    }, 500);
+                }
+                
                 // Trigger initialization event
                 this.triggerEvent('dashboardInitialized', {
                     version: this.version,

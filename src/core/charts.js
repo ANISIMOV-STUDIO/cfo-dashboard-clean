@@ -377,8 +377,7 @@
                         data: data.values || data.data || [],
                         backgroundColor: data.colors || data.backgroundColor || this.colors.primary,
                         borderColor: data.borderColors || data.borderColor || this.colors.primary,
-                        borderWidth: 1,
-                        borderRadius: 4
+                        borderWidth: 1
                     }]
                 },
                 options: this.mergeOptions(this.defaultOptions, {
@@ -414,10 +413,45 @@
             return new Chart(canvas, config);
         },
         
+        // Create debug element for DOM debugging
+        createDebugElement: function() {
+            var debugElement = document.createElement('div');
+            debugElement.id = 'debug-info';
+            debugElement.style.position = 'fixed';
+            debugElement.style.top = '10px';
+            debugElement.style.right = '10px';
+            debugElement.style.background = 'white';
+            debugElement.style.border = '1px solid #ccc';
+            debugElement.style.padding = '10px';
+            debugElement.style.maxWidth = '300px';
+            debugElement.style.maxHeight = '400px';
+            debugElement.style.overflow = 'auto';
+            debugElement.style.fontSize = '12px';
+            debugElement.style.zIndex = '9999';
+            debugElement.innerHTML = '<strong>Chart Debug Info:</strong><br>';
+            document.body.appendChild(debugElement);
+            return debugElement;
+        },
+        
         // Create line chart for time series
         createLineChart: function(canvasId, data) {
+            
+            console.log('ChartFactory.createLineChart called:', canvasId, data);
+            console.log('Chart.js available:', typeof Chart, Chart);
+            
+            // Add debug info to DOM
+            var debugElement = document.getElementById('debug-info') || this.createDebugElement();
+            debugElement.innerHTML += '<div>createLineChart called: ' + canvasId + '</div>';
+            debugElement.innerHTML += '<div>Chart.js type: ' + typeof Chart + '</div>';
+            
             var canvas = document.getElementById(canvasId);
-            if (!canvas) return null;
+            if (!canvas) {
+                console.log('Canvas not found for:', canvasId);
+                debugElement.innerHTML += '<div>ERROR: Canvas not found: ' + canvasId + '</div>';
+                return null;
+            }
+            console.log('Canvas found:', canvas);
+            debugElement.innerHTML += '<div>Canvas found: ' + canvasId + '</div>';
             
             // Validate input data
             if (!data || typeof data !== 'object') {
@@ -471,7 +505,18 @@
                 this.enableLegend(config, 'bottom');
             }
             
-            return new Chart(canvas, config);
+            console.log('Creating Chart.js instance with config:', config);
+            var debugElement = document.getElementById('debug-info');
+            try {
+                var chart = new Chart(canvas, config);
+                console.log('Chart created successfully:', chart);
+                if (debugElement) debugElement.innerHTML += '<div>Chart created successfully for: ' + canvasId + '</div>';
+                return chart;
+            } catch (error) {
+                console.error('Error creating chart:', error);
+                if (debugElement) debugElement.innerHTML += '<div>ERROR creating chart: ' + error.message + '</div>';
+                return null;
+            }
         },
         
         // Create waterfall chart (using bar chart)
@@ -1001,36 +1046,59 @@
         zoomStep: 0.2,
         
         zoomIn: function(chartId, series) {
+            console.log('ChartFactory.zoomIn called for:', chartId);
+            
+            if (!window.DashboardState) {
+                console.warn('DashboardState not available for zoom');
+                return;
+            }
+            
             var len = (series.dates || []).length;
+            console.log('Series length:', len);
+            
             var z = window.DashboardState.getZoom(chartId) || { start: 0, end: len - 1 };
+            console.log('Current zoom:', z);
+            
             var span = Math.max(3, Math.floor((z.end - z.start + 1) * (1 - this.zoomStep)));
             var center = Math.floor((z.start + z.end) / 2);
             var half = Math.floor(span / 2);
             var ns = Math.max(0, center - half);
             var ne = Math.min(len - 1, ns + span - 1);
             
-            if (window.DashboardState) {
-                window.DashboardState.setZoom(chartId, ns, ne);
-            }
+            console.log('New zoom window:', ns, '->', ne);
+            window.DashboardState.setZoom(chartId, ns, ne);
         },
         
         zoomOut: function(chartId, series) {
+            console.log('ChartFactory.zoomOut called for:', chartId);
+            
+            if (!window.DashboardState) {
+                console.warn('DashboardState not available for zoom');
+                return;
+            }
+            
             var len = (series.dates || []).length;
             var z = window.DashboardState.getZoom(chartId) || { start: 0, end: len - 1 };
+            console.log('Current zoom:', z, 'Series length:', len);
+            
             var span = Math.min(len, Math.floor((z.end - z.start + 1) * (1 + this.zoomStep)));
             var center = Math.floor((z.start + z.end) / 2);
             var half = Math.floor(span / 2);
             var ns = Math.max(0, center - half);
             var ne = Math.min(len - 1, ns + span - 1);
             
-            if (window.DashboardState) {
-                window.DashboardState.setZoom(chartId, ns, ne);
-            }
+            console.log('New zoom window:', ns, '->', ne);
+            window.DashboardState.setZoom(chartId, ns, ne);
         },
         
         zoomReset: function(chartId) {
+            console.log('ChartFactory.zoomReset called for:', chartId);
+            
             if (window.DashboardState) {
                 window.DashboardState.clearZoom(chartId);
+                console.log('Zoom cleared for chart:', chartId);
+            } else {
+                console.warn('DashboardState not available for zoom reset');
             }
         }
     };

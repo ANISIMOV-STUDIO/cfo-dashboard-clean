@@ -57,34 +57,58 @@
         
         // Render charts for specific page
         renderPageCharts: function(pageId, data) {
+            console.log('PageRenderers.renderPageCharts called:', pageId, data);
+            console.log('Data keys available:', data ? Object.keys(data) : 'No data');
+            
+            if (!data) {
+                console.warn('No data provided to renderPageCharts');
+                return;
+            }
+            
             // Clear any existing charts for this page first
             this.clearPageCharts(pageId);
             
             // Then render new charts
+            console.log('Rendering charts for page:', pageId);
             switch (pageId) {
                 case 'overview':
+                    console.log('Calling renderOverview...');
                     this.renderOverview(data);
                     break;
                 case 'sales':
+                    console.log('Calling renderSales...');
                     this.renderSales(data);
                     break;
                 case 'profit':
+                    console.log('Calling renderProfitability...');
                     this.renderProfitability(data);
                     break;
                 case 'cash':
+                    console.log('Calling renderCashFlow...');
                     this.renderCashFlow(data);
                     break;
                 case 'ar':
+                    console.log('Calling renderAccReceivable...');
                     this.renderAccReceivable(data);
                     break;
+                default:
+                    console.warn('Unknown page ID:', pageId);
             }
         },
         
         // Overview page charts
         renderOverview: function(data) {
+            console.log('renderOverview called with data:', data);
+            console.log('Checking timeSeries:', data.timeSeries);
+            console.log('Checking revenue:', data.timeSeries ? data.timeSeries.revenue : 'No timeSeries');
+            
             // Revenue trend chart using timeSeries.revenue data
             this.ensureChart('revenue-trend-chart', 'line', function() {
-                if (!data.timeSeries || !data.timeSeries.revenue) return null;
+                console.log('Inside revenue-trend-chart factory function');
+                if (!data.timeSeries || !data.timeSeries.revenue) {
+                    console.warn('No revenue data available for chart');
+                    return null;
+                }
                 
                 var revData = data.timeSeries.revenue;
                 return window.ChartFactory.createLineChart('revenue-trend-chart', {
@@ -211,7 +235,6 @@
                             backgroundColor: colors,
                             borderColor: colors,
                             borderWidth: 1,
-                            borderRadius: 4
                         }]
                     },
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
@@ -230,19 +253,17 @@
                                 }
                             }]
                         },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        var index = context.dataIndex;
-                                        var actualValue = values[index];
-                                        var label = context.dataset.label;
-                                        if (index === 0 || index === labels.length - 1) {
-                                            return label + ': ' + window.formatMoney(actualValue, 'RUB', 0);
-                                        } else {
-                                            var prefix = actualValue >= 0 ? '+' : '';
-                                            return label + ': ' + prefix + window.formatMoney(actualValue, 'RUB', 0);
-                                        }
+                        tooltips: {
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                    var index = tooltipItem.index;
+                                    var actualValue = values[index];
+                                    var label = data.datasets[tooltipItem.datasetIndex].label;
+                                    if (index === 0 || index === labels.length - 1) {
+                                        return label + ': ' + window.formatMoney(actualValue, 'RUB', 0);
+                                    } else {
+                                        var prefix = actualValue >= 0 ? '+' : '';
+                                        return label + ': ' + prefix + window.formatMoney(actualValue, 'RUB', 0);
                                     }
                                 }
                             }
@@ -289,7 +310,6 @@
                             backgroundColor: colors,
                             borderColor: colors,
                             borderWidth: 1,
-                            borderRadius: 4
                         }]
                     },
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
@@ -311,17 +331,15 @@
                                 }
                             }]
                         },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        var index = context.dataIndex;
-                                        var driver = drivers[index];
-                                        var variance = driver.variance || 0;
-                                        var prefix = variance >= 0 ? '+' : '';
-                                        return driver.driver + ': ' + prefix + window.formatMoney(variance, 'RUB', 0) + 
-                                               ' (' + prefix + (driver.variancePercent || 0).toFixed(1) + '%)';
-                                    }
+                        tooltips: {
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                    var index = tooltipItem.index;
+                                    var driver = drivers[index];
+                                    var variance = driver.variance || 0;
+                                    var prefix = variance >= 0 ? '+' : '';
+                                    return driver.driver + ': ' + prefix + window.formatMoney(variance, 'RUB', 0) + 
+                                           ' (' + prefix + (driver.variancePercent || 0).toFixed(1) + '%)';
                                 }
                             }
                         }
@@ -377,7 +395,7 @@
                 }
                 
                 var config = {
-                    type: 'bar',
+                    type: 'horizontalBar',
                     data: {
                         labels: branches.map(function(b) { return b.name || ''; }),
                         datasets: [{
@@ -385,29 +403,25 @@
                             data: chartData,
                             backgroundColor: ['#007AFF', '#34C759', '#FF9500', '#FF6B6B', '#9B59B6'],
                             borderColor: ['#007AFF', '#34C759', '#FF9500', '#FF6B6B', '#9B59B6'],
-                            borderWidth: 1,
-                            borderRadius: 4
+                            borderWidth: 1
                         }]
                     },
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
-                        indexAxis: 'y',
                         scales: {
-                            x: yAxisConfig,
-                            y: {
+                            xAxes: [yAxisConfig],
+                            yAxes: [{
                                 gridLines: { display: false },
                                 ticks: { fontSize: 11 }
-                            }
+                            }]
                         },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        var branch = branches[context.dataIndex];
-                                        if (isPercentage) {
-                                            return branch.name + ': ' + branch.share + '%';
-                                        } else {
-                                            return branch.name + ': ' + window.formatMoney(branch.revenue, 'RUB', 0);
-                                        }
+                        tooltips: {
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                    var branch = branches[tooltipItem.index];
+                                    if (isPercentage) {
+                                        return branch.name + ': ' + branch.share + '%';
+                                    } else {
+                                        return branch.name + ': ' + window.formatMoney(branch.revenue, 'RUB', 0);
                                     }
                                 }
                             }
@@ -458,16 +472,14 @@
                                 backgroundColor: 'rgba(23, 162, 184, 0.7)',
                                 borderColor: '#17a2b8',
                                 borderWidth: 1,
-                                borderRadius: 4
-                            },
+                                },
                             {
                                 label: 'Факт',
                                 data: actualValues,
                                 backgroundColor: 'rgba(40, 167, 69, 0.7)',
                                 borderColor: '#28a745',
                                 borderWidth: 1,
-                                borderRadius: 4
-                            }
+                                }
                         ]
                     },
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
@@ -489,19 +501,17 @@
                                 }
                             }]
                         },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        var driver = drivers[context.dataIndex];
-                                        var label = context.dataset.label + ': ' + window.formatMoney(context.parsed.y, 'RUB', 0);
-                                        if (context.dataset.label === 'Факт') {
-                                            var variance = driver.variance || 0;
-                                            var prefix = variance >= 0 ? '+' : '';
-                                            label += ' (откл: ' + prefix + window.formatMoney(variance, 'RUB', 0) + ')';
-                                        }
-                                        return label;
+                        tooltips: {
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                    var driver = drivers[tooltipItem.index];
+                                    var label = data.datasets[tooltipItem.datasetIndex].label + ': ' + window.formatMoney(tooltipItem.yLabel, 'RUB', 0);
+                                    if (data.datasets[tooltipItem.datasetIndex].label === 'Факт') {
+                                        var variance = driver.variance || 0;
+                                        var prefix = variance >= 0 ? '+' : '';
+                                        label += ' (откл: ' + prefix + window.formatMoney(variance, 'RUB', 0) + ')';
                                     }
+                                    return label;
                                 }
                             }
                         }
@@ -522,7 +532,7 @@
                 window.ChartFactory.ensureCanvasSize(canvas);
                 
                 var config = {
-                    type: 'bar',
+                    type: 'horizontalBar',
                     data: {
                         labels: branches.map(function(b) { return b.name || ''; }),
                         datasets: [{
@@ -530,12 +540,10 @@
                             data: branches.map(function(b) { return b.margin || 0; }),
                             backgroundColor: ['#34C759', '#007AFF', '#FF9500', '#FF6B6B'],
                             borderColor: ['#34C759', '#007AFF', '#FF9500', '#FF6B6B'],
-                            borderWidth: 1,
-                            borderRadius: 4
+                            borderWidth: 1
                         }]
                     },
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
-                        indexAxis: 'y',
                         scales: {
                             xAxes: [{
                                 gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
@@ -552,13 +560,11 @@
                                 ticks: { fontSize: 11 }
                             }]
                         },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        var branch = branches[context.dataIndex];
-                                        return branch.name + ': ' + branch.margin + '%';
-                                    }
+                        tooltips: {
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                    var branch = branches[tooltipItem.index];
+                                    return branch.name + ': ' + branch.margin + '%';
                                 }
                             }
                         }
@@ -618,7 +624,6 @@
                             backgroundColor: colors,
                             borderColor: colors,
                             borderWidth: 1,
-                            borderRadius: 4
                         }]
                     },
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
@@ -640,18 +645,16 @@
                                 }
                             }]
                         },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        var index = context.dataIndex;
-                                        var actualValue = values[index];
-                                        if (index === 0 || index === labels.length - 1) {
-                                            return 'Остаток: ' + window.formatMoney(actualValue, 'RUB', 0);
-                                        } else {
-                                            var prefix = actualValue >= 0 ? '+' : '';
-                                            return 'Поток: ' + prefix + window.formatMoney(actualValue, 'RUB', 0);
-                                        }
+                        tooltips: {
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                    var index = tooltipItem.index;
+                                    var actualValue = values[index];
+                                    if (index === 0 || index === labels.length - 1) {
+                                        return 'Остаток: ' + window.formatMoney(actualValue, 'RUB', 0);
+                                    } else {
+                                        var prefix = actualValue >= 0 ? '+' : '';
+                                        return 'Поток: ' + prefix + window.formatMoney(actualValue, 'RUB', 0);
                                     }
                                 }
                             }
@@ -710,12 +713,10 @@
                                 }
                             }]
                         },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return 'Прогноз: ' + window.formatMoney(context.parsed.y, 'RUB', 0);
-                                    }
+                        tooltips: {
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                    return 'Прогноз: ' + window.formatMoney(tooltipItem.yLabel, 'RUB', 0);
                                 }
                             }
                         }
@@ -748,7 +749,7 @@
                 var colors = ['#34C759', '#FF9500', '#FF6B6B', '#FF3B30'];
                 
                 var config = {
-                    type: 'bar',
+                    type: 'horizontalBar',
                     data: {
                         labels: labels,
                         datasets: [{
@@ -756,12 +757,10 @@
                             data: values,
                             backgroundColor: colors,
                             borderColor: colors,
-                            borderWidth: 1,
-                            borderRadius: 4
+                            borderWidth: 1
                         }]
                     },
                     options: Object.assign({}, window.ChartFactory.defaultOptions, {
-                        indexAxis: 'y',
                         scales: {
                             xAxes: [{
                                 gridLines: { color: 'rgba(189, 195, 199, 0.2)' },
@@ -777,13 +776,12 @@
                                 ticks: { fontSize: 11 }
                             }]
                         },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        var percentage = ((context.parsed.x / data.arAging.totalAR) * 100).toFixed(1);
-                                        return context.label + ': ' + window.formatMoney(context.parsed.x, 'RUB', 0) + ' (' + percentage + '%)';
-                                    }
+                        tooltips: {
+                            callbacks: {
+                                label: function(tooltipItem, chartData) {
+                                    var totalAR = values.reduce(function(sum, val) { return sum + val; }, 0);
+                                    var percentage = ((tooltipItem.xLabel / totalAR) * 100).toFixed(1);
+                                    return tooltipItem.yLabel + ': ' + window.formatMoney(tooltipItem.xLabel, 'RUB', 0) + ' (' + percentage + '%)';
                                 }
                             }
                         }
@@ -849,12 +847,10 @@
                                 max: Math.max.apply(Math, dsoData) + 5
                             }]
                         },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return 'DSO: ' + context.parsed.y + ' дней';
-                                    }
+                        tooltips: {
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                    return 'DSO: ' + tooltipItem.yLabel + ' дней';
                                 }
                             }
                         }
@@ -867,11 +863,22 @@
         
         // Ensure chart exists, create if needed
         ensureChart: function(canvasId, type, createFunction) {
+            console.log('ensureChart called for:', canvasId);
+            
+            // Add debug info to DOM if ChartFactory debug element exists
+            var debugElement = document.getElementById('debug-info');
+            if (debugElement) {
+                debugElement.innerHTML += '<div><strong>ensureChart called:</strong> ' + canvasId + '</div>';
+            }
+            
             var canvas = document.getElementById(canvasId);
             if (!canvas) {
                 console.warn('Canvas not found:', canvasId);
+                if (debugElement) debugElement.innerHTML += '<div>ERROR: Canvas not found: ' + canvasId + '</div>';
                 return null;
             }
+            
+            console.log('Canvas found:', canvasId, 'dimensions:', canvas.clientWidth + 'x' + canvas.clientHeight);
             
             // Ensure canvas context is available
             var ctx = canvas.getContext('2d');
@@ -882,6 +889,7 @@
             
             // Ensure canvas has dimensions
             if (canvas.clientWidth === 0 || canvas.clientHeight === 0) {
+                console.log('Canvas has zero dimensions, setting defaults');
                 // Set default dimensions if not set
                 canvas.style.width = '400px';
                 canvas.style.height = '300px';
@@ -890,6 +898,7 @@
             // Check if there's already a Chart.js instance on this canvas
             var existingChart = canvas.chart;
             if (existingChart && existingChart.destroy) {
+                console.log('Destroying existing chart on:', canvasId);
                 existingChart.destroy();
             }
             
@@ -906,9 +915,18 @@
                     Chart.defaults.global.defaultFontColor = '#374151';
                 }
                 
+                console.log('Calling createFunction for:', canvasId);
+                if (debugElement) debugElement.innerHTML += '<div>Calling createFunction for: ' + canvasId + '</div>';
                 var chart = createFunction();
+                console.log('CreateFunction returned:', !!chart, 'for', canvasId);
+                
                 if (chart) {
                     this.createdCharts[canvasId] = chart;
+                    console.log('Chart successfully created and tracked:', canvasId);
+                    if (debugElement) debugElement.innerHTML += '<div>SUCCESS: Chart created for: ' + canvasId + '</div>';
+                } else {
+                    console.warn('CreateFunction returned null/undefined for:', canvasId);
+                    if (debugElement) debugElement.innerHTML += '<div>ERROR: CreateFunction returned null for: ' + canvasId + '</div>';
                 }
                 return chart;
             } catch (error) {

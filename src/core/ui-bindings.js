@@ -24,6 +24,7 @@
             this.bindZoomControls();
             this.bindComparisonControls();
             this.bindCascadingFilters();
+            this.bindChartControlsFallback();
             
             // Initialize SelectLite with delay to ensure DOM is ready
             var self = this;
@@ -41,10 +42,59 @@
                         self.debugSelectLite();
                         self.forceBindSelects();
                     }
+                    
+                    // Initialize demo data and trigger chart rendering
+                    self.initializeDashboardData();
                 } else {
                     console.warn('SelectLite not found');
+                    // Still initialize data even without SelectLite
+                    self.initializeDashboardData();
                 }
-            }, 100);
+            }, 300);
+        },
+        
+        // Initialize dashboard with demo data
+        initializeDashboardData: function() {
+            console.log('Initializing dashboard data...');
+            
+            // Ensure DataManager has data
+            if (window.DataManager) {
+                window.DataManager.initializeDemoData();
+                
+                // Trigger chart rendering for current page
+                var currentPage = window.DashboardState ? window.DashboardState.getCurrentPage() : 'overview';
+                
+                setTimeout(function() {
+                    console.log('Checking PageRenderers availability...');
+                    console.log('PageRenderers:', !!window.PageRenderers);
+                    console.log('DataManager.currentData:', !!window.DataManager.currentData);
+                    
+                    if (window.PageRenderers && window.DataManager.currentData) {
+                        console.log('Triggering chart render for page:', currentPage);
+                        console.log('Data structure:', Object.keys(window.DataManager.currentData));
+                        
+                        window.PageRenderers.currentData = window.DataManager.currentData;
+                        window.PageRenderers.renderPageCharts(currentPage, window.DataManager.currentData);
+                    } else {
+                        console.warn('Missing dependencies for chart rendering:');
+                        console.warn('- PageRenderers:', !!window.PageRenderers);
+                        console.warn('- DataManager.currentData:', !!window.DataManager.currentData);
+                        
+                        // Try to force load data if PageRenderers exists but no data
+                        if (window.PageRenderers && !window.DataManager.currentData) {
+                            console.log('Forcing data load...');
+                            window.DataManager.initializeDemoData();
+                            
+                            setTimeout(function() {
+                                if (window.DataManager.currentData) {
+                                    window.PageRenderers.currentData = window.DataManager.currentData;
+                                    window.PageRenderers.renderPageCharts(currentPage, window.DataManager.currentData);
+                                }
+                            }, 50);
+                        }
+                    }
+                }, 100);
+            }
         },
         
         // Bind print functionality to buttons
@@ -342,9 +392,19 @@
         
         // Bind refresh button
         bindRefreshButton: function() {
-            var refreshBtn = document.getElementById('refresh-btn');
+            var refreshBtn = document.getElementById('manual-refresh-btn');
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', function() {
+                    console.log('Manual refresh button clicked');
+                    UIBindings.handleRefresh();
+                });
+            }
+            
+            // Also bind the other refresh button
+            var refreshBtn2 = document.getElementById('refresh-btn');
+            if (refreshBtn2) {
+                refreshBtn2.addEventListener('click', function() {
+                    console.log('Refresh button clicked');
                     UIBindings.handleRefresh();
                 });
             }
@@ -571,12 +631,27 @@
             
             document.addEventListener('click', function(event) {
                 if (event.target.classList.contains('zoom-btn')) {
-                    var chartId = event.target.closest('[data-chart-id]').getAttribute('data-chart-id');
-                    var zoomType = '';
+                    console.log('Zoom button clicked:', event.target.className);
                     
+                    // Find chart ID from zoom controls container
+                    var zoomControls = event.target.closest('.zoom-controls');
+                    if (!zoomControls) {
+                        console.warn('Zoom controls container not found');
+                        return;
+                    }
+                    
+                    var chartId = zoomControls.getAttribute('data-chart-id');
+                    if (!chartId) {
+                        console.warn('Chart ID not found in zoom controls');
+                        return;
+                    }
+                    
+                    var zoomType = '';
                     if (event.target.classList.contains('zoom-in')) zoomType = 'in';
                     else if (event.target.classList.contains('zoom-out')) zoomType = 'out';
                     else if (event.target.classList.contains('zoom-reset')) zoomType = 'reset';
+                    
+                    console.log('Zoom action:', zoomType, 'for chart:', chartId);
                     
                     if (chartId && zoomType) {
                         self.handleZoomAction(chartId, zoomType);
@@ -587,40 +662,101 @@
         
         // Handle zoom actions
         handleZoomAction: function(chartId, action) {
-            if (!window.ChartFactory || !window.DataManager) return;
+            console.log('Handling zoom action:', action, 'for chart:', chartId);
             
-            var series = window.DataManager.getFilteredForChart(chartId);
-            if (!series || !series.dates) return;
-            
-            if (action === 'in') {
-                window.ChartFactory.zoomIn(chartId, series);
-            } else if (action === 'out') {
-                window.ChartFactory.zoomOut(chartId, series);
-            } else if (action === 'reset') {
-                window.ChartFactory.zoomReset(chartId);
+            if (!window.ChartFactory || !window.DataManager) {
+                console.warn('ChartFactory or DataManager not available');
+                return;
             }
             
-            // Refresh chart with new zoom
-            this.refreshChart(chartId);
+            var series = window.DataManager.getFilteredForChart(chartId);
+            if (!series || !series.dates) {
+                console.warn('No series data found for chart:', chartId);
+                return;
+            }
+            
+            console.log('Series data length:', series.dates.length);
+            
+            try {
+                if (action === 'in') {
+                    window.ChartFactory.zoomIn(chartId, series);
+                } else if (action === 'out') {
+                    window.ChartFactory.zoomOut(chartId, series);
+                } else if (action === 'reset') {
+                    window.ChartFactory.zoomReset(chartId);
+                }
+                
+                // Refresh chart with new zoom
+                this.refreshChart(chartId);
+                console.log('Zoom action completed successfully');
+            } catch (error) {
+                console.error('Error in zoom action:', error);
+            }
         },
         
         // Refresh specific chart
         refreshChart: function(chartId) {
-            if (window.PageRenderers && window.DataManager) {
-                var series = window.DataManager.getFilteredForChart(chartId);
-                var compareMode = window.DashboardState ? window.DashboardState.getFilter('compare') : 'none';
+            console.log('Refreshing chart:', chartId);
+            
+            try {
+                var canvas = document.getElementById(chartId);
+                if (!canvas) {
+                    console.warn('Canvas not found:', chartId);
+                    return;
+                }
                 
-                if (window.ChartFactory) {
-                    var canvas = document.getElementById(chartId);
-                    if (canvas) {
-                        // Clear existing chart
-                        var existingChart = window.Chart.getChart(chartId);
-                        if (existingChart) existingChart.destroy();
+                // Get fresh data first
+                var series = window.DataManager ? window.DataManager.getFilteredForChart(chartId) : null;
+                if (!series || !series.dates) {
+                    console.warn('No series data available for chart:', chartId);
+                    return;
+                }
+                
+                // Try to get the chart instance (Chart.js stores instance on canvas)
+                var existingChart = canvas.chart;
+                
+                if (existingChart && existingChart.data) {
+                    console.log('Found existing chart, updating data...');
+                    
+                    try {
+                        // Update chart data
+                        existingChart.data.labels = series.dates;
+                        if (existingChart.data.datasets && existingChart.data.datasets[0]) {
+                            existingChart.data.datasets[0].data = series.fact;
+                        }
                         
-                        // Create new chart with updated data
-                        window.ChartFactory.createLineChart(chartId, series);
+                        // Update chart display
+                        if (typeof existingChart.update === 'function') {
+                            existingChart.update();
+                        }
+                        
+                        console.log('Chart updated successfully');
+                        return;
+                        
+                    } catch (updateError) {
+                        console.warn('Error updating chart data:', updateError);
+                        // Continue to recreation
                     }
                 }
+                
+                // Recreate chart if update failed or no chart exists
+                console.log('Recreating chart...');
+                
+                if (existingChart && typeof existingChart.destroy === 'function') {
+                    existingChart.destroy();
+                }
+                canvas.chart = null;
+                
+                // Create new chart
+                if (window.ChartFactory && typeof window.ChartFactory.createLineChart === 'function') {
+                    window.ChartFactory.createLineChart(chartId, series);
+                    console.log('New chart created successfully');
+                } else {
+                    console.warn('ChartFactory.createLineChart not available');
+                }
+                
+            } catch (error) {
+                console.error('Error refreshing chart:', error);
             }
         },
         
@@ -630,8 +766,24 @@
             
             document.addEventListener('click', function(event) {
                 if (event.target.classList.contains('comp-btn')) {
-                    var chartId = event.target.closest('[data-chart-id]').getAttribute('data-chart-id');
+                    console.log('Comparison button clicked:', event.target.textContent);
+                    
+                    // Find chart ID from comparison controls container
+                    var comparisonControls = event.target.closest('.comparison-controls');
+                    if (!comparisonControls) {
+                        console.warn('Comparison controls container not found');
+                        return;
+                    }
+                    
+                    var chartId = comparisonControls.getAttribute('data-chart-id');
+                    if (!chartId) {
+                        console.warn('Chart ID not found in comparison controls');
+                        return;
+                    }
+                    
                     var mode = event.target.getAttribute('data-mode');
+                    
+                    console.log('Comparison mode:', mode, 'for chart:', chartId);
                     
                     if (chartId && mode) {
                         self.handleComparisonChange(chartId, mode, event.target);
@@ -792,8 +944,13 @@
                 
                 // Remove existing event listeners by cloning
                 var newBtn = btn.cloneNode(true);
-                btn.parentNode.replaceChild(newBtn, btn);
-                btn = newBtn;
+                if (btn.parentNode) {
+                    btn.parentNode.replaceChild(newBtn, btn);
+                    btn = newBtn;
+                } else {
+                    console.warn('Button has no parent node, skipping clone');
+                    return;
+                }
                 
                 // Add click event to button
                 btn.addEventListener('click', function(e) {
@@ -828,6 +985,12 @@
                         
                         console.log('Selected item:', ev.target.textContent);
                         
+                        // Check if button still exists
+                        if (!btn || !document.contains(btn)) {
+                            console.warn('Button no longer in DOM');
+                            return;
+                        }
+                        
                         // Update button text
                         var text = ev.target.textContent || ev.target.innerText;
                         btn.innerHTML = text + '<span class="sel-arrow">▾</span>';
@@ -855,11 +1018,203 @@
                     });
                 }
             }, false);
+        },
+        
+        // Fallback binding for chart controls
+        bindChartControlsFallback: function() {
+            var self = this;
+            console.log('Setting up chart controls fallback...');
+            
+            // Additional direct binding as fallback
+            setTimeout(function() {
+                // Bind zoom buttons directly
+                var zoomButtons = document.querySelectorAll('.zoom-btn');
+                console.log('Found zoom buttons:', zoomButtons.length);
+                
+                zoomButtons.forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        console.log('Direct zoom button click:', this.className);
+                        
+                        var zoomControls = this.closest('.zoom-controls');
+                        if (!zoomControls) return;
+                        
+                        var chartId = zoomControls.getAttribute('data-chart-id');
+                        if (!chartId) return;
+                        
+                        var action = '';
+                        if (this.classList.contains('zoom-in')) action = 'in';
+                        else if (this.classList.contains('zoom-out')) action = 'out';
+                        else if (this.classList.contains('zoom-reset')) action = 'reset';
+                        
+                        if (action) {
+                            console.log('Fallback zoom:', action, chartId);
+                            self.handleZoomAction(chartId, action);
+                        }
+                    });
+                });
+                
+                // Bind comparison buttons directly
+                var compButtons = document.querySelectorAll('.comp-btn');
+                console.log('Found comparison buttons:', compButtons.length);
+                
+                compButtons.forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        console.log('Direct comparison button click:', this.textContent);
+                        
+                        var compControls = this.closest('.comparison-controls');
+                        if (!compControls) return;
+                        
+                        var chartId = compControls.getAttribute('data-chart-id');
+                        if (!chartId) return;
+                        
+                        var mode = this.getAttribute('data-mode');
+                        if (mode) {
+                            console.log('Fallback comparison:', mode, chartId);
+                            self.handleComparisonChange(chartId, mode, this);
+                        }
+                    });
+                });
+                
+            }, 200);
+        },
+        
+        // Test all chart control buttons
+        testChartControls: function() {
+            console.log('=== Testing Chart Controls ===');
+            
+            var zoomBtns = document.querySelectorAll('.zoom-btn');
+            var compBtns = document.querySelectorAll('.comp-btn');
+            var refreshBtns = document.querySelectorAll('.refresh-btn, #manual-refresh-btn, #refresh-btn');
+            
+            console.log('Zoom buttons found:', zoomBtns.length);
+            console.log('Comparison buttons found:', compBtns.length);
+            console.log('Refresh buttons found:', refreshBtns.length);
+            
+            // Test zoom buttons
+            zoomBtns.forEach(function(btn, index) {
+                var controls = btn.closest('.zoom-controls');
+                var chartId = controls ? controls.getAttribute('data-chart-id') : 'unknown';
+                console.log('Zoom button ' + index + ':', {
+                    classes: btn.className,
+                    chartId: chartId,
+                    pointerEvents: window.getComputedStyle(btn).pointerEvents,
+                    zIndex: window.getComputedStyle(btn).zIndex
+                });
+            });
+            
+            // Test comparison buttons
+            compBtns.forEach(function(btn, index) {
+                var controls = btn.closest('.comparison-controls');
+                var chartId = controls ? controls.getAttribute('data-chart-id') : 'unknown';
+                console.log('Comp button ' + index + ':', {
+                    classes: btn.className,
+                    mode: btn.getAttribute('data-mode'),
+                    chartId: chartId,
+                    pointerEvents: window.getComputedStyle(btn).pointerEvents
+                });
+            });
+            
+            // Check if all required functions exist
+            console.log('Functions available:');
+            console.log('- ChartFactory:', !!window.ChartFactory);
+            console.log('- ChartFactory.zoomIn:', !!(window.ChartFactory && window.ChartFactory.zoomIn));
+            console.log('- DataManager:', !!window.DataManager);
+            console.log('- DataManager.getFilteredForChart:', !!(window.DataManager && window.DataManager.getFilteredForChart));
+            console.log('- DashboardState:', !!window.DashboardState);
+            console.log('- DashboardState.setZoom:', !!(window.DashboardState && window.DashboardState.setZoom));
         }
     };
     
     // Export to window
     window.UIBindings = UIBindings;
+    
+    // Export test function for manual debugging
+    window.testChartControls = function() {
+        UIBindings.testChartControls();
+    };
+    
+    // Simple test function for zoom
+    window.testZoom = function(chartId, action) {
+        chartId = chartId || 'revenue-trend-chart';
+        action = action || 'in';
+        
+        console.log('Testing zoom:', action, 'for chart:', chartId);
+        
+        if (UIBindings.handleZoomAction) {
+            UIBindings.handleZoomAction(chartId, action);
+        } else {
+            console.error('UIBindings.handleZoomAction not found');
+        }
+    };
+    
+    // Force render all charts with demo data
+    window.forceRenderCharts = function() {
+        console.log('Force rendering charts...');
+        
+        if (window.DataManager) {
+            window.DataManager.initializeDemoData();
+            
+            var currentPage = window.DashboardState ? window.DashboardState.getCurrentPage() : 'overview';
+            
+            console.log('Available modules:');
+            console.log('- DataManager:', !!window.DataManager);
+            console.log('- PageRenderers:', !!window.PageRenderers);
+            console.log('- DataManager.currentData:', !!window.DataManager.currentData);
+            console.log('- Current page:', currentPage);
+            
+            if (window.PageRenderers && window.DataManager.currentData) {
+                window.PageRenderers.currentData = window.DataManager.currentData;
+                window.PageRenderers.renderPageCharts(currentPage, window.DataManager.currentData);
+                console.log('Charts rendered for page:', currentPage);
+            } else {
+                console.warn('PageRenderers or data not available');
+                
+                if (!window.PageRenderers) {
+                    console.warn('PageRenderers module not loaded');
+                }
+                if (!window.DataManager.currentData) {
+                    console.warn('No current data in DataManager');
+                    console.log('DataManager state:', window.DataManager);
+                }
+            }
+        }
+    };
+    
+    // Initialize everything on window load as backup
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            console.log('Window loaded, forcing chart render...');
+            if (window.forceRenderCharts) {
+                window.forceRenderCharts();
+            }
+        }, 500);
+    });
+    
+    // Simple debug function for data inspection
+    window.debugData = function() {
+        console.log('=== Data Debug ===');
+        console.log('DataManager:', window.DataManager);
+        console.log('DataManager.currentData:', window.DataManager ? window.DataManager.currentData : 'Not available');
+        console.log('PageRenderers:', window.PageRenderers);
+        console.log('PageRenderers.currentData:', window.PageRenderers ? window.PageRenderers.currentData : 'Not available');
+        
+        if (window.DataManager && window.DataManager.currentData) {
+            console.log('Data structure:');
+            console.log('- Keys:', Object.keys(window.DataManager.currentData));
+            if (window.DataManager.currentData.timeSeries) {
+                console.log('- TimeSeries keys:', Object.keys(window.DataManager.currentData.timeSeries));
+                if (window.DataManager.currentData.timeSeries.revenue) {
+                    console.log('- Revenue data:', window.DataManager.currentData.timeSeries.revenue);
+                }
+            }
+        }
+    };
     
 })();
 
@@ -943,7 +1298,12 @@ window.SelectLite = (function() {
         }, false);
         
         // Bind option clicks
-        var items = btn.parentNode.querySelectorAll('.sel-item');
+        var selectContainer = btn.parentNode;
+        if (!selectContainer) {
+            console.warn('Button has no parent container');
+            return;
+        }
+        var items = selectContainer.querySelectorAll('.sel-item');
         for (var j = 0; j < items.length; j++) {
             items[j].addEventListener('click', function(ev) {
                 ev.preventDefault();
@@ -961,10 +1321,13 @@ window.SelectLite = (function() {
                 }
                 
                 // Close dropdown
-                btn.parentNode.classList.remove('open');
+                var selectContainer = btn.parentNode;
+                if (selectContainer) {
+                    selectContainer.classList.remove('open');
+                }
                 
                 // Trigger change event
-                var selectId = btn.parentNode.getAttribute('data-select-id');
+                var selectId = selectContainer ? selectContainer.getAttribute('data-select-id') : null;
                 var value = ev.target.getAttribute('data-value') || text;
                 
                 if (selectId && window.DashboardState) {
@@ -979,10 +1342,12 @@ window.SelectLite = (function() {
                 }
                 
                 // Dispatch custom event
-                var event = new Event('selectchange', { bubbles: true });
-                event.selectId = selectId;
-                event.value = value;
-                btn.parentNode.dispatchEvent(event);
+                if (selectContainer) {
+                    var event = new Event('selectchange', { bubbles: true });
+                    event.selectId = selectId;
+                    event.value = value;
+                    selectContainer.dispatchEvent(event);
+                }
                 
             }, false);
         }

@@ -168,10 +168,40 @@
                 
                 // Render charts for the entire page only if data is available
                 setTimeout(function() {
-                    if (window.PageRenderers && window.PageRenderers.renderPageCharts && window.PageRenderers.currentData) {
-                        window.PageRenderers.renderPageCharts(pageId, window.PageRenderers.currentData);
+                    // Try to get data from multiple sources
+                    var data = window.PageRenderers && window.PageRenderers.currentData;
+                    if (!data && window.DataManager) {
+                        data = window.DataManager.currentData || window.DataManager.getFiltered();
+                    }
+                    
+                    console.log('Checking data availability for', pageId + ':');
+                    console.log('- PageRenderers.currentData:', !!(window.PageRenderers && window.PageRenderers.currentData));
+                    console.log('- DataManager.currentData:', !!(window.DataManager && window.DataManager.currentData));
+                    console.log('- Data found:', !!data);
+                    
+                    if (window.PageRenderers && window.PageRenderers.renderPageCharts && data) {
+                        console.log('Rendering charts for', pageId, 'with data');
+                        // Ensure PageRenderers has the data
+                        window.PageRenderers.currentData = data;
+                        window.PageRenderers.renderPageCharts(pageId, data);
                     } else {
                         console.log('Skipping chart render - no data available yet for', pageId);
+                        
+                        // Try to force data initialization
+                        if (window.DataManager && window.DataManager.initializeDemoData) {
+                            console.log('Attempting to initialize demo data...');
+                            window.DataManager.initializeDemoData();
+                            
+                            // Retry after data initialization
+                            setTimeout(function() {
+                                var retryData = window.DataManager.currentData;
+                                if (window.PageRenderers && retryData) {
+                                    console.log('Retry: Rendering charts for', pageId);
+                                    window.PageRenderers.currentData = retryData;
+                                    window.PageRenderers.renderPageCharts(pageId, retryData);
+                                }
+                            }, 100);
+                        }
                     }
                 }, 50);
             }

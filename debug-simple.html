@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Chart Debug</title>
+    <style>
+        #debug { 
+            position: fixed; 
+            top: 10px; 
+            right: 10px; 
+            background: white; 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            max-width: 400px; 
+            font-family: monospace; 
+            font-size: 12px;
+            z-index: 9999;
+        }
+        #chart-container {
+            width: 400px;
+            height: 300px;
+            border: 1px solid red;
+            margin: 20px;
+        }
+        canvas {
+            border: 1px solid blue;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Chart Debug Test</h1>
+    <div id="chart-container">
+        <canvas id="test-chart" width="400" height="300"></canvas>
+    </div>
+    <div id="debug">
+        <strong>Debug Info:</strong><br>
+    </div>
+    
+    <script src="lib/Chart-2.9.4.min.js"></script>
+    <script>
+        function log(msg) {
+            console.log(msg);
+            document.getElementById('debug').innerHTML += msg + '<br>';
+        }
+        
+        log('Step 1: Script started');
+        log('Chart type: ' + typeof Chart);
+        
+        if (typeof Chart === 'undefined') {
+            log('ERROR: Chart.js not loaded');
+        } else {
+            log('Chart.js version: ' + (Chart.version || 'unknown'));
+            
+            // Test 1: Simple canvas creation
+            var canvas = document.getElementById('test-chart');
+            log('Canvas found: ' + !!canvas);
+            log('Canvas dimensions: ' + canvas.width + 'x' + canvas.height);
+            
+            // Test 2: Canvas context
+            var ctx = canvas.getContext('2d');
+            log('Canvas context: ' + !!ctx);
+            
+            // Test 3: Simple Chart.js creation
+            try {
+                log('Creating simple chart...');
+                var chart = new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+                        datasets: [{
+                            label: 'Test Data',
+                            data: [10, 20, 15, 25],
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+                log('SUCCESS: Chart created');
+                log('Chart instance: ' + !!chart);
+                log('Chart type in instance: ' + chart.config.type);
+                
+                // Test the chart is actually rendered
+                setTimeout(function() {
+                    log('Chart canvas data: ' + canvas.toDataURL().substring(0, 50) + '...');
+                }, 100);
+                
+            } catch (error) {
+                log('ERROR creating chart: ' + error.message);
+                log('Error stack: ' + error.stack);
+            }
+        }
+    </script>
+</body>
+</html>

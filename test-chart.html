@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chart.js Test</title>
+</head>
+<body>
+    <h1>Chart.js Test</h1>
+    <canvas id="test-chart" width="400" height="300"></canvas>
+    <div id="output"></div>
+    
+    <script src="lib/Chart-2.9.4.min.js"></script>
+    <script>
+        function log(msg) {
+            document.getElementById('output').innerHTML += '<div>' + msg + '</div>';
+            console.log(msg);
+        }
+        
+        log('Chart.js type: ' + typeof Chart);
+        
+        if (typeof Chart !== 'undefined') {
+            log('Chart.js loaded successfully');
+            log('Chart.js version: ' + (Chart.version || 'unknown'));
+            
+            try {
+                var canvas = document.getElementById('test-chart');
+                var chart = new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar'],
+                        datasets: [{
+                            label: 'Test',
+                            data: [10, 20, 30],
+                            borderColor: 'blue'
+                        }]
+                    }
+                });
+                log('SUCCESS: Test chart created');
+            } catch (error) {
+                log('ERROR creating test chart: ' + error.message);
+            }
+        } else {
+            log('ERROR: Chart.js not loaded');
+        }
+    </script>
+</body>
+</html>
